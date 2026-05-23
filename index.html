@@ -1171,10 +1171,21 @@
 777的祷告-绝对望楼
 777的话语-绝对旅程
 777的传道宣教-绝对里程碑</div>
+        <!-- 拍照识别隐藏输入 -->
+        <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoUpload(this)">
         <div style="display:flex;gap:12px;margin-top:16px;">
             <button class="btn-parse" onclick="parseText()" style="flex:1;">
                 ✨ 解析内容
             </button>
+            <button class="btn-parse" onclick="openPhotoCapture()"
+                style="flex:1;background:linear-gradient(135deg,#06b6d4,#0891b2);box-shadow:0 4px 15px rgba(6,182,212,0.4);">
+                📷 拍照识别
+            </button>
+        </div>
+        <div style="text-align:center;margin-top:6px;">
+            <span style="font-size:13px;color:#8b7a96;">💡 拍节目单照片，AI自动识别并填入所有字段</span>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:8px;">
             <button class="btn-parse" onclick="oneClickGenerate()"
                 style="flex:1;background:linear-gradient(135deg,#f59e0b,#e85d04);box-shadow:0 4px 15px rgba(245,158,11,0.4);">
                 🤖 帮我做
@@ -4896,6 +4907,43 @@ function generateCustomPPT(slide, elements, BG, W, G) {
             slide.addImage({ path: el.imageData, x: x, y: y, w: w, h: h, sizing: { type: 'contain', w: w, h: h } });
         }
     }
+}
+// ============ Photo OCR (Qwen VL) ============
+const QWEN_KEY = 'sk-b0145400ebd24d71b2741f11e9a1645f';
+const QWEN_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+
+function openPhotoCapture() { document.getElementById('photo-input').click(); }
+
+async function handlePhotoUpload(input) {
+    const file = input.files[0]; if (!file) return;
+    if (!file.type.startsWith('image/')) { showToast('⚠️ 请选择图片', true); input.value = ''; return; }
+    showPhotoLoading(true, '正在识别…');
+    try {
+        const base64 = await new Promise((res, rej) => {
+            const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = () => rej(new Error('读取失败')); r.readAsDataURL(file);
+        });
+        const prompt = '识别教会礼拜节目单图片，提取: lastweek(上周), date(日期如2026.4.12), declaration(777宣告), praise1(赞美1如"76人生理由"), praise2(赞美2), special(特颂), psalm(诗篇编号), hymn1(新编赞美1), hymn2(新编赞美2), sermon1(证道1经文+标题), sermon2(证道2), forum(论坛)。只返回JSON: {"lastweek":"","date":"","declaration":"","praise1":"","praise2":"","special":"","psalm":"","hymn1":"","hymn2":"","sermon1":"","sermon2":"","forum":""}';
+        const resp = await fetch(QWEN_URL, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+QWEN_KEY}, body:JSON.stringify({model:'qwen-vl-max',messages:[{role:'system',content:'只返回JSON'},{role:'user',content:[{type:'image_url',image_url:{url:'data:image/jpeg;base64,'+base64}},{type:'text',text:prompt}]}],temperature:0.1,max_tokens:2000}) });
+        if (!resp.ok) throw new Error('API '+resp.status);
+        const data = await resp.json(), content = data.choices?.[0]?.message?.content;
+        if (!content) throw new Error('无返回');
+        let j = content.trim(); if (j.startsWith('```')) j = j.replace(/```json\n?/g,'').replace(/```/g,'').trim();
+        const r = JSON.parse(j);
+        const S = (id,v) => { if (v&&v.trim()) { const e = document.getElementById(id); if (e) e.value = v.trim(); } };
+        S('f-lastweek',r.lastweek); S('f-date',r.date); if (r.declaration) S('f-declaration',r.declaration);
+        S('f-praise1',r.praise1); S('f-praise2',r.praise2); if (r.special) S('f-special',r.special);
+        S('f-psalm',r.psalm); S('f-hymn1',r.hymn1); S('f-hymn2',r.hymn2);
+        S('f-sermon1',r.sermon1); S('f-sermon2',r.sermon2); if (r.forum) S('f-forum',r.forum);
+        document.getElementById('edit-section').style.display='block';
+        document.getElementById('edit-section').scrollIntoView({behavior:'smooth'});
+        showToast('✅ 识别完成！请检查');
+    } catch(e) { console.error(e); showToast('❌ '+e.message, true); }
+    finally { showPhotoLoading(false); input.value=''; }
+}
+function showPhotoLoading(s,m) {
+    const o = document.getElementById('loading'), t = document.getElementById('loading-text');
+    if (s) { if (t&&m) t.textContent=m; o.classList.add('show'); }
+    else { o.classList.remove('show'); if (t) t.textContent='正在生成...'; }
 }
 // ============ Page Init: 提前预加载固定歌曲音频 ============
 // 在页面加载时就开始后台下载欢迎赞美(24)和结束赞美(134)的音频
