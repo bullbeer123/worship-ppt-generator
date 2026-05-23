@@ -2981,6 +2981,7 @@ async function loadFixedSongAudioById(audioKey, songId, displayName) {
 
 // Auto-calculate a comfortable font size based on text length (for verses)
 // Short text → large font, long text → smaller font, always uses --fs-scale
+// 字符数阈值和字号经过优化，使中文经文在16:9幻灯片上默认显示更大更易读
 function autoVerseFontSize(text) {
     const len = text.length;
     // Reference: a typical verse line on screen is about 20-25 chars
@@ -2988,11 +2989,11 @@ function autoVerseFontSize(text) {
     const lines = text.split('\n').length;
     const totalChars = len + (lines - 1) * 10; // rough visual weight estimate
     let base;
-    if (totalChars <= 30) base = 52;
-    else if (totalChars <= 50) base = 44;
-    else if (totalChars <= 80) base = 38;
-    else if (totalChars <= 120) base = 32;
-    else base = 28;
+    if (totalChars <= 25) base = 68;
+    else if (totalChars <= 45) base = 56;
+    else if (totalChars <= 70) base = 48;
+    else if (totalChars <= 100) base = 40;
+    else base = 34;
     return `calc(${base}px * var(--fs-scale))`;
 }
 
@@ -3581,19 +3582,23 @@ async function updateAudioForSlide() {
                 // 本地文件（上传或同源高频音频）直接播放，不走CORS代理
                 _attachAudioAndPlay(audioUrl, true);
             } else {
-                // 远程音频：先从缓存加载，缓存未命中时实时通过代理下载
-                loadAudioWithCache(audioUrl).then(({ blobUrl, fromCache }) => {
-                    if (!currentAudio || currentAudio.key !== s.audioKey) {
-                        URL.revokeObjectURL(blobUrl);
-                        return; // 用户已切换幻灯片
+                // ★ 远程音频优化：Audio元素可直接播放跨域音频（无需CORS）
+                // 优先尝试缓存（更快），缓存未命中则直接用原始URL播放
+                // 同时在后台下载缓存，供下次播放使用
+                getCachedAudio(audioUrl).then(blobUrl => {
+                    if (blobUrl && currentAudio && currentAudio.key === s.audioKey) {
+                        currentAudio.blobUrl = blobUrl;
+                        _attachAudioAndPlay(blobUrl, true);
+                    } else {
+                        // 缓存未命中，直接播放原始URL（Audio元素支持跨域）
+                        throw new Error('no-cache');
                     }
-                    currentAudio.blobUrl = blobUrl;
-                    _attachAudioAndPlay(blobUrl, fromCache);
-                }).catch(err => {
-                    console.error('音频加载失败:', err.message);
+                }).catch(() => {
+                    // 缓存不可用，直接播放原始URL + 后台缓存
                     if (currentAudio && currentAudio.key === s.audioKey) {
-                        btn.disabled = false;
-                        btn.textContent = '⚠️ 播放失败';
+                        _attachAudioAndPlay(audioUrl, false);
+                        // 后台下载存入缓存，供下次使用
+                        prefetchAudioInBackground(audioUrl);
                     }
                 });
             }
@@ -4892,6 +4897,18 @@ function generateCustomPPT(slide, elements, BG, W, G) {
         }
     }
 }
+// ============ Page Init: 提前预加载固定歌曲音频 ============
+// 在页面加载时就开始后台下载欢迎赞美(24)和结束赞美(134)的音频
+// 这样用户粘贴内容后一键生成时，音频已经就绪
+(function() {
+    // 固定歌曲已在 LOCAL_AUDIO_MAP 中（本地同源），零延迟加载
+    // 这里确保 IndexedDB 提前初始化，减少后续播放时的初始化等待
+    openAudioDB().catch(() => {});
+    // 预先设置固定歌曲为本地文件，避免任何网络请求
+    loadFixedSongAudioById('praise-welcome', '5b00f970605d87b30340f3b2487b0387', '你原来是宝贵的');
+    loadFixedSongAudioById('praise-final', '5b00f970605d87b30340f5467f65e853', '主啊，在我人生中');
+})();
+
 </script>
 
 <!-- ======= Custom Page Editor Overlay ======= -->
