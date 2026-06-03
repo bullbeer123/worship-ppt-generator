@@ -2359,13 +2359,9 @@ function fillAIParseResult(result) {
         document.getElementById('f-lastweek').value = result.lastweek;
     if (result.sermon1) {
         document.getElementById('f-sermon1').value = mergeSermonTitle(result.sermon1);
-        var btn = document.querySelector('#f-sermon1').closest('.field-group').querySelector('.fetch-btn');
-        if (btn) setTimeout(function() { btn.click(); }, 100);
     }
     if (result.sermon2) {
         document.getElementById('f-sermon2').value = mergeSermonTitle(result.sermon2);
-        var btn2 = document.querySelector('#f-sermon2').closest('.field-group').querySelector('.fetch-btn');
-        if (btn2) setTimeout(function() { btn2.click(); }, 200);
     }
     if (result.praise1) {
         document.getElementById('f-praise1').value = result.praise1;
@@ -2455,21 +2451,27 @@ async function fetchBible(type) {
             const val = document.getElementById(fieldId).value.trim();
             if (!val) { showToast('请先输入证道经文引用', true); return; }
             const firstLine = val.split('\n')[0];
-            // Extract all Bible references (e.g. "创4:16-16" and "5:1-32" from "创4:16-16、5:1-32血统")
-            // Match: book(optional) chapter:verses pattern
-            // 支持 "书卷章:节-节"（范围）、"书卷章:节"（单节）、"书卷章"（整章）三种格式
-            const parts = firstLine.match(/(撒上|撒下|创|出|利|民|申|书|士|得|王上|王下|代上|代下|拉|尼|斯|伯|诗|箴|传|歌|赛|耶|哀|结|但|何|珥|摩|俄|拿|弥|鸿|哈|番|该|亚|玛|太|可|路|约|徒|罗|林前|林后|加|弗|腓|西|帖前|帖后|提前|提后|多|门|来|雅|彼前|彼后|约一|约贰|约叁|犹|启)?\d+[:：]\d+[-–—]\d+|(撒上|撒下|创|出|利|民|申|书|士|得|王上|王下|代上|代下|拉|尼|斯|伯|诗|箴|传|歌|赛|耶|哀|结|但|何|珥|摩|俄|拿|弥|鸿|哈|番|该|亚|玛|太|可|路|约|徒|罗|林前|林后|加|弗|腓|西|帖前|帖后|提前|提后|多|门|来|雅|彼前|彼后|约一|约贰|约叁|犹|启)\d+[:：]\d+|(撒上|撒下|创|出|利|民|申|书|士|得|王上|王下|代上|代下|拉|尼|斯|伯|诗|箴|传|歌|赛|耶|哀|结|但|何|珥|摩|俄|拿|弥|鸿|哈|番|该|亚|玛|太|可|路|约|徒|罗|林前|林后|加|弗|腓|西|帖前|帖后|提前|提后|多|门|来|雅|彼前|彼后|约一|约贰|约叁|犹|启)\d+|\d+[:：]\d+[-–—]\d+/g);
-            if (!parts) { showToast('无法识别经文引用', true); return; }
 
-            // Detect full book name for the first ref (e.g. "创" → "创")
-            const bookPart = firstLine.match(/^(撒上|撒下|创|出|利|民|申|书|士|得|王上|王下|代上|代下|拉|尼|斯|伯|诗|箴|传|歌|赛|耶|哀|结|但|何|珥|摩|俄|拿|弥|鸿|哈|番|该|亚|玛|太|可|路|约|徒|罗|林前|林后|加|弗|腓|西|帖前|帖后|提前|提后|多|门|来|雅|彼前|彼后|约一|约贰|约叁|犹|启)/);
-            const bookPrefix = bookPart ? bookPart[1] : '';
+            const books = '撒上|撒下|创|出|利|民|申|书|士|得|王上|王下|代上|代下|拉|尼|斯|伯|诗|箴|传|歌|赛|耶|哀|结|但|何|珥|摩|俄|拿|弥|鸿|哈|番|该|亚|玛|太|可|路|约|徒|罗|林前|林后|加|弗|腓|西|帖前|帖后|提前|提后|多|门|来|雅|彼前|彼后|约一|约贰|约叁|犹|启';
 
-            // Build search queries: add book prefix to refs that don't have one
-            const queries = parts.map(p => {
-                const hasBook = !/^\d/.test(p) && !/^[:：]/.test(p);
-                return hasBook ? p : bookPrefix + p;
-            });
+            // ★ 同 fetchSermonSilent: 支持链接引用格式 "创3：15.6：4.12：1-3"
+            const bookMatch = firstLine.match(new RegExp('^(' + books + ')'));
+            const bookPrefix = bookMatch ? bookMatch[1] : '';
+            if (!bookPrefix) { showToast('无法识别经文引用', true); return; }
+
+            const refText = firstLine.replace(new RegExp('^(' + books + ')'), '').replace(/[^\d.:：.‑–—\-、，\s]+$/, '').trim();
+            if (!refText) { showToast('无法识别经文引用', true); return; }
+
+            const rawParts = refText.split(/[.、]+/).filter(Boolean);
+            const queries = rawParts.map(p => {
+                p = p.trim();
+                if (new RegExp('^(' + books + ')\\d').test(p)) return p;
+                if (/^\d/.test(p)) return bookPrefix + p;
+                if (/^[:：]\d/.test(p)) return bookPrefix + p;
+                return p;
+            }).filter(Boolean);
+
+            if (queries.length === 0) { showToast('无法识别经文引用', true); return; }
 
             // Fetch all verses concurrently
             const results = await Promise.all(queries.map(async (q, idx) => {
