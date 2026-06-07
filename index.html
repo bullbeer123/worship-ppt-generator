@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -1302,7 +1301,7 @@ async function fetchLyrics(type) {
             }
             // ★ 写入字典（供下次快速命中）
             saveSongUrlToDict(song.title, audioUrl, song.title + '.mp3');
-            _applyAudioToField(type, audioUrl, song.title);
+            _applyAudioToField(type, audioUrl, song.title, { shiji_index: song.shiji_index, xuhao: song.xuhao });
         }
 
         showToast('✅ 已获取「' + song.title + '」的歌词和音频！');
@@ -1314,7 +1313,8 @@ async function fetchLyrics(type) {
 
 // ============ 一键搜索所有音频 ============
 // 辅助：把音频URL应用到对应字段（含缓存状态显示）
-function _applyAudioToField(type, audioUrl, songTitle) {
+// songMeta 可选 { shiji_index, xuhao }，用于构造中文歌名 URL 回退
+function _applyAudioToField(type, audioUrl, songTitle, songMeta) {
     if (!audioUrl) return;
     if (audioFiles[type] && audioFiles[type].isBlob) URL.revokeObjectURL(audioFiles[type].url);
 
@@ -1327,12 +1327,29 @@ function _applyAudioToField(type, audioUrl, songTitle) {
         return;
     }
 
-    audioFiles[type] = { url: ensureHttps(audioUrl), name: songTitle + '.mp3', isRemote: true };
+    let url = ensureHttps(audioUrl);
+    let fallbackUrl = null;
+
+    // ★ 检测旧格式 hash URL（OSS 重组后纯 hash 路径已失效 404）
+    //    如果 API 返回 hash 格式，用中文歌名格式作为替代
+    const pathOnly = url.replace(/^https?:\/\/[^\/]+\//, '');
+    const isHashUrl = /^assets\/[a-f0-9]+\.mp3$/.test(pathOnly) || /^assets\/[a-f0-9]{20,}$/.test(pathOnly);
+    if (isHashUrl && songMeta) {
+        const collection = (songMeta.shiji_index === 2) ? '新编赞美诗' : '赞美耶稣诗集';
+        const xuhao = songMeta.xuhao || '';
+        const rawPath = `assets/${collection}${xuhao}首：${songTitle} [中质量].mp3`;
+        fallbackUrl = 'https://oss.top237.top/' + encodeURI(rawPath);
+        // 回退 URL 作为主 URL
+        url = fallbackUrl;
+        console.log('🔄 API返回hash URL，改用中文名格式:', url.substring(0, 80));
+    }
+
+    audioFiles[type] = { url: url, name: songTitle + '.mp3', isRemote: true };
     setFieldBadge(type, 'ok', '已就绪');
     const nameEl = document.getElementById('audio-' + type + '-name');
     if (nameEl) {
         nameEl.textContent = '🎵 ' + songTitle + ' ⏳0%…';
-        prefetchAudioInBackground(audioUrl, (state, pct) => {
+        prefetchAudioInBackground(url, (state, pct) => {
             if (state === 'downloading') { nameEl.textContent = '🎵 ' + songTitle + ' ⏳' + (pct > 0 ? pct + '%…' : '下载中…'); setFieldBadge(type, 'warn', pct + '%'); }
             else if (state === 'cached') { nameEl.textContent = '🎵 ' + songTitle + ' ✅已缓存'; setFieldBadge(type, 'ok', '已缓存'); }
             else if (state === 'failed') { nameEl.textContent = '🎵 ' + songTitle + ' ⚠️缓存失败'; setFieldBadge(type, 'err', '缓存失败'); }
@@ -1427,7 +1444,7 @@ async function fetchLyricsSilent(type) {
         // 加载音频 + ★ 写入字典（供下次快速命中）
         if (audioUrl) {
             saveSongUrlToDict(song.title, audioUrl, song.title + '.mp3');
-            _applyAudioToField(type, audioUrl, song.title);
+            _applyAudioToField(type, audioUrl, song.title, { shiji_index: song.shiji_index, xuhao: song.xuhao });
         }
 
         return { success: song.title };
