@@ -1233,7 +1233,7 @@ async function fetchLyrics(type) {
 
         // Step 1: Search in song list
         const list = await getSongList();
-        const candidateList = shijiFilter !== null ? list.filter(s => s.shiji_index === shijiFilter) : list;
+        const candidateList = shijiFilter !== null ? list.filter(s => s.shiji_index === shijiFilter || (shijiFilter === 0 && s.shiji_index == null)) : list;
         let matches = candidateList.filter(s => {
             const title = (s.title || '').toLowerCase();
             return title.includes(query.toLowerCase()) || query.toLowerCase().includes(title);
@@ -1378,7 +1378,7 @@ async function fetchLyricsSilent(type) {
 
         // ★ 正常API搜索流程
         const list = await getSongList();
-        const candidateList = shijiFilter !== null ? list.filter(s => s.shiji_index === shijiFilter) : list;
+        const candidateList = shijiFilter !== null ? list.filter(s => s.shiji_index === shijiFilter || (shijiFilter === 0 && s.shiji_index == null)) : list;
         let matches = candidateList.filter(s => {
             const title = (s.title || '').toLowerCase();
             return title.includes(query.toLowerCase()) || query.toLowerCase().includes(title);
