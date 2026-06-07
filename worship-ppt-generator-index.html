@@ -118,8 +118,8 @@ input, textarea, select, button { font-family: inherit; }
 
 .slide-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0f0720; z-index: 300; flex-direction: column; }
 .slide-overlay.show { display: flex; }
-.slide-stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; }
-.slide-page { width: min(100vw, calc(100vh * 16/9)); height: min(100vh, calc(100vw * 9/16)); background: #5B1A6E; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 3% 5%; overflow: hidden; border-radius: 4px; --fs-scale: 1; --lh: 1.6; }
+.slide-stage { flex: 1; min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.slide-page { width: min(100vw, calc(100dvh * 16/9)); height: min(100dvh, calc(100vw * 9/16)); background: #5B1A6E; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 3% 5%; overflow: hidden; border-radius: 4px; --fs-scale: 1; --lh: 1.6; }
 .slide-page .s-title { font-size: calc(clamp(24px,5vw,96px) * var(--fs-scale)); color: #fff; font-weight: 700; text-align: center; line-height: var(--lh); }
 .slide-page .s-subtitle { font-size: calc(clamp(18px,3.5vw,72px) * var(--fs-scale)); color: #F5D76E; text-align: center; margin-top: 6px; line-height: var(--lh); }
 .slide-page .s-body { font-size: calc(clamp(18px,4vw,80px) * var(--fs-scale)); color: #fff; text-align: center; line-height: var(--lh); margin-top: 14px; max-width: 95%; word-break: break-word; }
