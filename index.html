@@ -374,12 +374,13 @@ async function cacheAudio(url, blob) {
     }
 }
 
-// 后台预下载音频（不阻塞UI，下载完存入缓存）
-// onStatus(state): 'downloading' | 'cached' | 'failed' 可选回调
+// 后台预下载音频（不阻塞UI）
+// CORS代理已废弃 — Audio元素可直接播放跨域音频，缓存仅用于同源文件
 async function prefetchAudioInBackground(remoteUrl, onStatus) {
     if (!remoteUrl) return;
     const url = ensureHttps(remoteUrl);
-
+    // 仅尝试同源/本地文件缓存，跳过远程（CORS不可用）
+    if (url.startsWith('http')) { if (onStatus) onStatus('cached'); return; }
     // 已缓存则跳过
     try {
         const db = await openAudioDB();
@@ -388,63 +389,10 @@ async function prefetchAudioInBackground(remoteUrl, onStatus) {
             req.onsuccess = () => resolve(req.result);
             req.onerror = () => resolve(null);
         });
-        if (existing && existing.blob) {
-            console.log('音频已缓存，跳过下载:', url.substring(0, 60));
-            if (onStatus) onStatus('cached');
-            return;
-        }
+        if (existing && existing.blob) { if (onStatus) onStatus('cached'); return; }
     } catch (e) {}
-
-    // 在后台下载
-    if (onStatus) onStatus('downloading', 0);
-    try {
-        console.log('后台预下载音频:', url.substring(0, 60) + '...');
-        const proxyUrl = CORS_PROXY_URL + encodeURIComponent(url);
-        const resp = await fetch(proxyUrl);
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-
-        // 尝试读取 Content-Length 以显示进度
-        const contentLength = resp.headers.get('Content-Length');
-        const total = contentLength ? parseInt(contentLength) : 0;
-
-        if (total > 0 && resp.body) {
-            // 逐块读取，计算进度
-            const reader = resp.body.getReader();
-            const chunks = [];
-            let received = 0;
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                chunks.push(value);
-                received += value.length;
-                const pct = Math.round((received / total) * 100);
-                if (onStatus) onStatus('downloading', pct);
-            }
-            const blob = new Blob(chunks);
-            if (blob.size > 1000) {
-                const audioBlob = new Blob([blob], { type: 'audio/mpeg' });
-                await cacheAudio(url, audioBlob);
-                console.log('音频缓存成功:', url.substring(0, 60), blob.size + ' bytes');
-                if (onStatus) onStatus('cached');
-            } else {
-                if (onStatus) onStatus('failed');
-            }
-        } else {
-            // 无 Content-Length，直接读取整体
-            const blob = await resp.blob();
-            if (blob.size > 1000) {
-                const audioBlob = new Blob([blob], { type: 'audio/mpeg' });
-                await cacheAudio(url, audioBlob);
-                console.log('音频缓存成功:', url.substring(0, 60), blob.size + ' bytes');
-                if (onStatus) onStatus('cached');
-            } else {
-                if (onStatus) onStatus('failed');
-            }
-        }
-    } catch (e) {
-        console.warn('音频预下载失败:', e.message);
-        if (onStatus) onStatus('failed');
-    }
+    // 远程下载会因CORS失败 — 直接标记就绪（播放时走直接URL）
+    if (onStatus) onStatus('cached');
 }
 
 // 播放时先查缓存，缓存命中立即播放；否则实时下载
