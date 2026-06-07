@@ -2587,10 +2587,14 @@ async function fetchLyrics(type) {
             }
         }
 
-        // Also try matching by xuhao (song number) — use cleaned val for number
+        // Also try matching by xuhao (song number) — but cross-check with title
         const numMatch = cleanVal.match(/^\d+/);
         if (matches.length === 0 && numMatch) {
             matches = candidateList.filter(s => String(s.xuhao) === numMatch[0]);
+            // xuhao matched but title doesn't → discard, proceed to fallback
+            const titleOK = matches.filter(s => (s.title||'').includes(query) || query.includes(s.title||''));
+            if (titleOK.length > 0) matches = titleOK;
+            else matches = []; // force fallback
         }
 
         // If still no match with shiji filter, try without filter
@@ -2729,6 +2733,9 @@ async function fetchLyricsSilent(type) {
         const numMatch = cleanVal.match(/^\d+/);
         if (matches.length === 0 && numMatch) {
             matches = candidateList.filter(s => String(s.xuhao) === numMatch[0]);
+            const titleOK = matches.filter(s => (s.title||'').includes(query) || query.includes(s.title||''));
+            if (titleOK.length > 0) matches = titleOK;
+            else matches = [];
         }
         if (matches.length === 0 && shijiFilter !== null) {
             matches = list.filter(s => {
