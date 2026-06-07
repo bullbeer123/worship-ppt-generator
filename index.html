@@ -155,6 +155,9 @@ input, textarea, select, button { font-family: inherit; }
 .side-label { font-size: 13px; font-weight: 600; display: block; }
 .side-hint { font-size: 10px; color: var(--text-muted); display: block; margin-top: 1px; }
 
+.btn-ghost-sm { background: transparent; color: var(--text-muted); padding: 6px 12px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; }
+.btn-ghost-sm:hover { border-color: var(--border-active); color: var(--text); }
+
 .text-editor textarea { min-height: 80px; }
 .text-placeholder { color: var(--text-muted); font-size: 14px; text-align: center; padding: 20px; }
 
@@ -199,12 +202,12 @@ input, textarea, select, button { font-family: inherit; }
         </div>
         <div class="field-card"><span class="field-label">日期</span><div class="field-value"><input type="text" id="f-date" placeholder="2026.6.7"></div></div>
         <div class="field-card"><span class="field-label">上周</span><div class="field-value"><textarea id="f-lastweek" placeholder="上周的默想或回顾内容..." rows="2"></textarea></div></div>
-        <div class="field-card"><span class="field-label">赞美 1</span><div class="field-value"><input type="text" id="f-praise1" placeholder="91 二十四小时呼吁"><div class="field-badges" id="praise1-badges"></div></div></div>
-        <div class="field-card"><span class="field-label">赞美 2</span><div class="field-value"><input type="text" id="f-praise2" placeholder="118 Remnant"><div class="field-badges" id="praise2-badges"></div></div></div>
-        <div class="field-card"><span class="field-label">特颂</span><div class="field-value"><input type="text" id="f-special" placeholder="没有则留空"><div class="field-badges" id="special-badges"></div></div></div>
+        <div class="field-card"><span class="field-label">赞美 1</span><div class="field-value"><input type="text" id="f-praise1" placeholder="91 二十四小时呼吁"><textarea id="f-praise1-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="praise1-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('praise1')" style="display:none;" id="btn-fetch-praise1">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('praise1')" style="display:none;" id="btn-audio-praise1">🎵 本地音频</button></div></div></div>
+        <div class="field-card"><span class="field-label">赞美 2</span><div class="field-value"><input type="text" id="f-praise2" placeholder="118 Remnant"><textarea id="f-praise2-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="praise2-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('praise2')" style="display:none;" id="btn-fetch-praise2">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('praise2')" style="display:none;" id="btn-audio-praise2">🎵 本地音频</button></div></div></div>
+        <div class="field-card"><span class="field-label">特颂</span><div class="field-value"><input type="text" id="f-special" placeholder="没有则留空"><textarea id="f-special-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="special-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('special')" style="display:none;" id="btn-fetch-special">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('special')" style="display:none;" id="btn-audio-special">🎵 本地音频</button></div></div></div>
         <div class="field-card"><span class="field-label">诗篇</span><div class="field-value"><input type="text" id="f-psalm" placeholder="23" style="width:80px;"><div class="field-badges" id="psalm-badges"></div></div></div>
-        <div class="field-card"><span class="field-label">新编 1</span><div class="field-value"><input type="text" id="f-hymn1" placeholder="54 心向主宝座歌"><div class="field-badges" id="hymn1-badges"></div></div></div>
-        <div class="field-card"><span class="field-label">新编 2</span><div class="field-value"><input type="text" id="f-hymn2" placeholder="258 耶稣领我歌"><div class="field-badges" id="hymn2-badges"></div></div></div>
+        <div class="field-card"><span class="field-label">新编 1</span><div class="field-value"><input type="text" id="f-hymn1" placeholder="54 心向主宝座歌"><textarea id="f-hymn1-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="hymn1-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('hymn1')" style="display:none;" id="btn-fetch-hymn1">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('hymn1')" style="display:none;" id="btn-audio-hymn1">🎵 本地音频</button></div></div></div>
+        <div class="field-card"><span class="field-label">新编 2</span><div class="field-value"><input type="text" id="f-hymn2" placeholder="258 耶稣领我歌"><textarea id="f-hymn2-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="hymn2-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('hymn2')" style="display:none;" id="btn-fetch-hymn2">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('hymn2')" style="display:none;" id="btn-audio-hymn2">🎵 本地音频</button></div></div></div>
         <div class="field-card"><span class="field-label">证道 1</span><div class="field-value"><textarea id="f-sermon1" placeholder="赛66：12-24 赐给存留者的应许" rows="2"></textarea></div></div>
         <div class="field-card"><span class="field-label">证道 2</span><div class="field-value"><textarea id="f-sermon2" placeholder="创3：15 永远的黑暗经济" rows="2"></textarea></div></div>
         <div class="field-card"><span class="field-label">论坛要点</span><div class="field-value"><textarea id="f-forum" placeholder="论坛分享的主题..." rows="3"></textarea></div></div>
@@ -268,13 +271,13 @@ input, textarea, select, button { font-family: inherit; }
     <button class="side-btn" onclick="resetAll()">重置</button>
 </div>
 
-<!-- V1 compatibility: hidden form elements required by JS -->
+<!-- V1 compatibility: hidden containers required by JS (lyrics textareas now inline in edit section) -->
 <div id="psalm-content-group" style="display:none;"><textarea id="f-psalm-content"></textarea></div>
-<div id="praise1-lyrics-group" style="display:none;"><textarea id="f-praise1-lyrics"></textarea></div>
-<div id="praise2-lyrics-group" style="display:none;"><textarea id="f-praise2-lyrics"></textarea></div>
-<div id="special-lyrics-group" style="display:none;"><textarea id="f-special-lyrics"></textarea></div>
-<div id="hymn1-lyrics-group" style="display:none;"><textarea id="f-hymn1-lyrics"></textarea></div>
-<div id="hymn2-lyrics-group" style="display:none;"><textarea id="f-hymn2-lyrics"></textarea></div>
+<div id="praise1-lyrics-group" style="display:none;"></div>
+<div id="praise2-lyrics-group" style="display:none;"></div>
+<div id="special-lyrics-group" style="display:none;"></div>
+<div id="hymn1-lyrics-group" style="display:none;"></div>
+<div id="hymn2-lyrics-group" style="display:none;"></div>
 <div id="decl-quick-btns" style="display:none;"></div>
 <input type="file" id="img-cover" accept="image/*" style="display:none" onchange="onCoverImgSelected(this)">
 <input type="file" id="img-ending" accept="image/*" style="display:none" onchange="onEndingImgSelected(this)">
@@ -1385,6 +1388,9 @@ async function fetchLyricsSilent(type) {
         // 填入歌词
         document.getElementById(lyricsId).value = lyric;
         document.getElementById(groupId).style.display = 'block';
+        // V2: 显示内联歌词区
+        const v2lyr = document.getElementById(lyricsId);
+        if (v2lyr) v2lyr.style.display = '';
 
         // 加载音频 + ★ 写入字典（供下次快速命中）
         if (audioUrl) {
@@ -3591,17 +3597,46 @@ function setFieldBadge(type, state, text) {
     el.innerHTML = '<span class="badge ' + cls + '">' + text + '</span>';
 }
 
-// 检查赞美名称是否只有数字（提示用户补充名称）
+// 检查赞美名称是否只有数字（提示用户补充名称），并显示歌词区和操作按钮
 function checkPraiseNames() {
     ['praise1','praise2','special','hymn1','hymn2'].forEach(type => {
         const val = document.getElementById('f-' + type).value.trim();
-        if (!val) return;
-        // 去掉"附"前缀和数字，剩余为空说明只有编号
+        if (!val) {
+            // 空值：隐藏歌词和按钮
+            const lyr = document.getElementById('f-' + type + '-lyrics');
+            if (lyr) lyr.style.display = 'none';
+            hideSongBtns(type);
+            return;
+        }
+        // 有值：显示操作按钮
+        showSongBtns(type);
+        // 检查是否只有编号
         const clean = val.replace(/^附/, '').replace(/^\d+[\s.、,，]*/, '').trim();
         if (!clean) {
             setFieldBadge(type, 'warn', '需补全歌名');
         }
     });
+}
+
+function showSongBtns(type) {
+    const b1 = document.getElementById('btn-fetch-' + type);
+    const b2 = document.getElementById('btn-audio-' + type);
+    if (b1) b1.style.display = '';
+    if (b2) b2.style.display = '';
+    // 显示歌词区（如果已有歌词或搜索过）
+    const lyr = document.getElementById('f-' + type + '-lyrics');
+    const lyricsVal = (lyr && lyr.value.trim());
+    if (lyr && lyricsVal) {
+        lyr.style.display = '';
+        document.getElementById(type + '-lyrics-group').style.display = 'block';
+    }
+}
+
+function hideSongBtns(type) {
+    const b1 = document.getElementById('btn-fetch-' + type);
+    const b2 = document.getElementById('btn-audio-' + type);
+    if (b1) b1.style.display = 'none';
+    if (b2) b2.style.display = 'none';
 }
 // ============ Page Init: 提前预加载固定歌曲音频 ============
 // 在页面加载时就开始后台下载欢迎赞美(24)和结束赞美(134)的音频
