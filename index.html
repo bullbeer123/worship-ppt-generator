@@ -2591,10 +2591,11 @@ async function fetchLyrics(type) {
         const numMatch = cleanVal.match(/^\d+/);
         if (matches.length === 0 && numMatch) {
             matches = candidateList.filter(s => String(s.xuhao) === numMatch[0]);
-            // xuhao matched but title doesn't → discard, proceed to fallback
-            const titleOK = matches.filter(s => (s.title||'').includes(query) || query.includes(s.title||''));
+            // xuhao matched but title doesn't → normalize and re-check
+            const norm = t => (t||'').replace(/[.\s、，　]/g,'').toLowerCase();
+            const titleOK = matches.filter(s => norm(s.title).includes(norm(query)) || norm(query).includes(norm(s.title)));
             if (titleOK.length > 0) matches = titleOK;
-            else matches = []; // force fallback
+            else matches = []; // force fallback to all-shiji search
         }
 
         // If still no match with shiji filter, try without filter
@@ -2733,7 +2734,8 @@ async function fetchLyricsSilent(type) {
         const numMatch = cleanVal.match(/^\d+/);
         if (matches.length === 0 && numMatch) {
             matches = candidateList.filter(s => String(s.xuhao) === numMatch[0]);
-            const titleOK = matches.filter(s => (s.title||'').includes(query) || query.includes(s.title||''));
+            const norm = t => (t||'').replace(/[.\s、，　]/g,'').toLowerCase();
+            const titleOK = matches.filter(s => norm(s.title).includes(norm(query)) || norm(query).includes(norm(s.title)));
             if (titleOK.length > 0) matches = titleOK;
             else matches = [];
         }
