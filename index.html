@@ -260,7 +260,7 @@ input, textarea, select, button { font-family: inherit; }
         <span class="side-hint">解析+搜音频</span>
     </button>
     <button class="side-btn" onclick="buildSlideshow()">生成</button>
-    <button class="side-btn side-btn-save" onclick="saveContent()">
+    <button class="side-btn side-btn-save" onclick="manualSave()">
         <span class="side-label">保存</span>
         <span class="side-hint">防丢失</span>
     </button>
@@ -1833,7 +1833,8 @@ function renderSlide() {
 
     // 非板书页隐藏板书输入栏和鼠标事件
     if (s.type !== 'sermon-chalkboard') {
-        document.getElementById('chalk-input-bar').style.display = 'none';
+        const chalkBar = document.getElementById('chalk-input-bar');
+        if (chalkBar) chalkBar.style.display = 'none';
         page.onmousedown = null;
         page.onmousemove = null;
         page.onmouseup = null;
