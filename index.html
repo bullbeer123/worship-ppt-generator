@@ -274,6 +274,11 @@ input, textarea, select, button { font-family: inherit; }
 <div id="special-lyrics-group" style="display:none;"><textarea id="f-special-lyrics"></textarea></div>
 <div id="hymn1-lyrics-group" style="display:none;"><textarea id="f-hymn1-lyrics"></textarea></div>
 <div id="hymn2-lyrics-group" style="display:none;"><textarea id="f-hymn2-lyrics"></textarea></div>
+<div id="decl-quick-btns" style="display:none;"></div>
+<input type="file" id="img-cover" accept="image/*" style="display:none" onchange="onCoverImgSelected(this)">
+<input type="file" id="img-ending" accept="image/*" style="display:none" onchange="onEndingImgSelected(this)">
+<div id="img-cover-preview" style="display:none;"></div>
+<div id="img-ending-preview" style="display:none;"></div>
 
 <script>
 // ============ Audio Management ============
