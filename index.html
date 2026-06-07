@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -134,10 +135,12 @@ input, textarea, select, button { font-family: inherit; }
 .slide-ctrl-btn:hover { border-color: var(--border-active); color: var(--text); }
 .slide-ctrl-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 .slide-counter { font-size: 13px; color: var(--text-secondary); min-width: 48px; text-align: center; }
-.slide-toc { display: flex; gap: 4px; padding: 6px 16px; overflow-x: auto; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); }
-.slide-toc-item { flex-shrink: 0; padding: 6px 14px; border-radius: 6px; background: var(--border); border: none; cursor: pointer; font-size: 13px; color: var(--text-secondary); transition: all 0.15s; text-align: left; white-space: nowrap; }
-.slide-toc-item:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-.slide-toc-item.current { background: var(--primary); color: #fff; }
+.slide-toc { display: flex; gap: 4px; padding: 6px 12px; overflow-x: auto; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); scroll-behavior: smooth; }
+.slide-toc.hidden { display: none; }
+.slide-toc-item { flex-shrink: 0; width: 28px; height: 22px; border-radius: 4px; background: var(--border); border: none; cursor: pointer; font-size: 10px; color: var(--text-muted); transition: all 0.15s; text-align: center; line-height: 22px; overflow: hidden; padding: 0; }
+.slide-toc-item:hover { background: rgba(255,255,255,0.15); color: var(--text); }
+.slide-toc-item.current { background: var(--primary); color: #fff; width: auto; min-width: 28px; padding: 0 8px; font-size: 11px; }
+.slide-toc-item.section-start { border-left: 2px solid var(--amber); }
 
 .slide-audio-bar { display: none; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); gap: 8px; }
 .slide-audio-bar.show { display: flex; }
@@ -895,48 +898,61 @@ async function parseText() {
         document.getElementById('f-hymn2').value = (nums[1] || '').trim();
     }
 
-    // 6. Forum + 777: 论坛后到第一个句号"。"=论坛内容（含句号），句号后=777宣告
-    //    也兼容换行分割：多行时第一行=论坛，剩余=777
+    // 6. Forum + Prayer/Declaration:
+    //    论坛要点/论坛(提问)后 → 到"祷告"/"宣告"边界 = 论坛内容
+    //    "祷告"/"宣告"之后 = 祷告/宣告内容
+    //    无"祷告"/"宣告"边界时，回退到777关键字分割逻辑
     let forumText = '';
     let declText = '';
-    const forumMatch = raw.match(/论坛\s*(?:[（(]提问[）)])?\s*[：:\s]?\s*([\s\S]*?)$/);
+    const forumMatch = raw.match(/论坛\s*(?:[（(]提问[）)])?\s*(?:要点)?\s*[：:\s]?\s*([\s\S]*?)$/);
     if (forumMatch) {
-        const afterForum = forumMatch[1].trim();
-        // 按换行分割
-        const fParts = afterForum.split(/\n/).map(l => l.trim()).filter(Boolean);
-        if (fParts.length >= 2) {
-            // 多行：查找777宣告起始行（按特征关键字），在其之前为论坛、之后为777宣告
-            const declKeywords = /建立神国|准备300|形成3Camp|医治伟人|宝座的望楼|300%|\.3camp|里程碑|伟大事工|绝对望楼|绝对旅程|绝对里程碑/i;
-            var declLineIdx = -1;
-            for (var fi = 0; fi < fParts.length; fi++) {
-                if (declKeywords.test(fParts[fi])) { declLineIdx = fi; break; }
-            }
-            if (declLineIdx > 0) {
-                forumText = fParts.slice(0, declLineIdx).join('\n');
-                declText = fParts.slice(declLineIdx).join('\n');
-            } else {
-                // 找不到特征关键字：第一段 = 论坛，剩余 = 777
-                forumText = fParts[0];
-                declText = fParts.slice(1).join('\n');
-            }
-        } else if (fParts.length === 1) {
-            const line = fParts[0];
-            // 单行：按第一个中文句号"。"分割
-            const dotIdx = line.indexOf('。');
-            if (dotIdx > 0) {
-                forumText = line.substring(0, dotIdx + 1).trim();
-                declText = line.substring(dotIdx + 1).trim();
-            } else if (line.length > 80) {
-                // 没有句号但很长：按特征词切分
-                const declSplit = line.search(/宝座的望楼|300%|里程碑|\.3camp|医治伟人/i);
-                if (declSplit > 0) {
-                    forumText = line.substring(0, declSplit).trim();
-                    declText = line.substring(declSplit).trim();
+        let afterForum = forumMatch[1].trim();
+        // 去掉开头残留的"要点"标签后缀（如"论坛要点"匹配后残留"要点"）
+        afterForum = afterForum.replace(/^要点\s*[：:，,]?\s*/, '').trim();
+
+        // 优先查找"祷告"或"宣告"边界，在边界处切分论坛/祷告
+        const prayIdx = afterForum.search(/\b(?:祷告|宣告)\b/);
+        if (prayIdx > 0) {
+            forumText = afterForum.substring(0, prayIdx).trim();
+            declText = afterForum.substring(prayIdx).replace(/^(?:祷告|宣告)\s*[：:，,]?\s*/, '').trim();
+        } else if (prayIdx === 0) {
+            // "祷告"/"宣告"在开头，没有论坛内容
+            forumText = '';
+            declText = afterForum.replace(/^(?:祷告|宣告)\s*[：:，,]?\s*/, '').trim();
+        } else {
+            // 没有祷告/宣告边界 → 回退到777关键字分割逻辑
+            const fParts = afterForum.split(/\n/).map(l => l.trim()).filter(Boolean);
+            if (fParts.length >= 2) {
+                const declKeywords = /建立神国|准备300|形成3Camp|医治伟人|宝座的望楼|300%|\.3camp|里程碑|伟大事工|绝对望楼|绝对旅程|绝对里程碑/i;
+                var declLineIdx = -1;
+                for (var fi = 0; fi < fParts.length; fi++) {
+                    if (declKeywords.test(fParts[fi])) { declLineIdx = fi; break; }
+                }
+                if (declLineIdx > 0) {
+                    forumText = fParts.slice(0, declLineIdx).join('\n');
+                    declText = fParts.slice(declLineIdx).join('\n');
+                } else {
+                    // 找不到777关键字：第一段 = 论坛，剩余 = 祷告
+                    forumText = fParts[0];
+                    declText = fParts.slice(1).join('\n');
+                }
+            } else if (fParts.length === 1) {
+                const line = fParts[0];
+                const dotIdx = line.indexOf('。');
+                if (dotIdx > 0) {
+                    forumText = line.substring(0, dotIdx + 1).trim();
+                    declText = line.substring(dotIdx + 1).trim();
+                } else if (line.length > 80) {
+                    const declSplit = line.search(/宝座的望楼|300%|里程碑|\.3camp|医治伟人/i);
+                    if (declSplit > 0) {
+                        forumText = line.substring(0, declSplit).trim();
+                        declText = line.substring(declSplit).trim();
+                    } else {
+                        forumText = line;
+                    }
                 } else {
                     forumText = line;
                 }
-            } else {
-                forumText = line;
             }
         }
     }
@@ -945,7 +961,8 @@ async function parseText() {
     if (forumText && /777的/.test(forumText)) {
         const declLines = forumText.match(/^.*777的[^\n]*/gm);
         if (declLines) {
-            declText = declLines.join('\n');
+            if (declText) declText = declLines.join('\n') + '\n' + declText;
+            else declText = declLines.join('\n');
             forumText = forumText.replace(/^.*777的[^\n]*/gm, '').trim();
         }
     }
@@ -1811,19 +1828,20 @@ function renderSlide() {
 }
 
 // ============ TOC (Table of Contents) Navigation ============
-let tocVisible = false;
+let tocVisible = true;
 
 function buildToc() {
     const list = document.getElementById('slide-toc-list');
     const toc = slides._toc || [];
-    list.innerHTML = toc.map((item, i) =>
-        '<button class="slide-toc-item" onclick="goToSection(' + i + ')">' + (i + 1) + '. ' + esc(item.name) + '</button>'
-    ).join('');
+    list.innerHTML = toc.map((item, i) => {
+        const cls = 'slide-toc-item' + (i === 0 || (i > 0 && toc[i].name !== toc[i-1].name) ? ' section-start' : '');
+        return '<button class="' + cls + '" data-index="' + item.slideIndex + '" onclick="goToSection(' + i + ')" title="' + esc(item.name) + '">' + (i + 1) + '</button>';
+    }).join('');
 }
 
 function toggleToc() {
     tocVisible = !tocVisible;
-    document.getElementById('slide-toc').classList.toggle('show', tocVisible);
+    document.getElementById('slide-toc').classList.toggle('hidden', !tocVisible);
 }
 
 function goToSection(tocIndex) {
@@ -1858,7 +1876,7 @@ function nextSlide() { if (currentSlide < slides.length - 1) { currentSlide++; r
 function prevSlide() { if (currentSlide > 0) { currentSlide--; renderSlide(); } }
 function closeSlideshow(backToEdit) {
     document.getElementById('slideshow-overlay').classList.remove('show');
-    const toc = document.getElementById('slide-toc'); if (toc) toc.classList.remove('show');
+    const toc = document.getElementById('slide-toc'); if (toc) toc.classList.remove('hidden');
     document.getElementById('side-panel').style.display = '';
     const cb = document.getElementById('chalk-input-bar'); if (cb) cb.style.display = 'none';
     const cp = document.getElementById('chalk-props-bar'); if (cp) cp.style.display = 'none';
