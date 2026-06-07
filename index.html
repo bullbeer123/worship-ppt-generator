@@ -134,12 +134,15 @@ input, textarea, select, button { font-family: inherit; }
 .slide-ctrl-btn:hover { border-color: var(--border-active); color: var(--text); }
 .slide-ctrl-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 .slide-counter { font-size: 13px; color: var(--text-secondary); min-width: 48px; text-align: center; }
-.slide-toc { display: flex; gap: 4px; padding: 6px 12px; overflow-x: auto; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); scroll-behavior: smooth; }
+.slide-toc { display: flex; gap: 3px; padding: 5px 10px; overflow-x: auto; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); scroll-behavior: smooth; }
 .slide-toc.hidden { display: none; }
-.slide-toc-item { flex-shrink: 0; width: 28px; height: 22px; border-radius: 4px; background: var(--border); border: none; cursor: pointer; font-size: 10px; color: var(--text-muted); transition: all 0.15s; text-align: center; line-height: 22px; overflow: hidden; padding: 0; }
+.slide-toc-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; border-radius: 4px; background: var(--border); border: none; cursor: pointer; font-size: 9px; color: var(--text-muted); transition: all 0.15s; padding: 2px 4px; min-width: 22px; line-height: 1.1; }
 .slide-toc-item:hover { background: rgba(255,255,255,0.15); color: var(--text); }
-.slide-toc-item.current { background: var(--primary); color: #fff; width: auto; min-width: 28px; padding: 0 8px; font-size: 11px; }
+.slide-toc-item.current { background: var(--primary); color: #fff; }
 .slide-toc-item.section-start { border-left: 2px solid var(--amber); }
+.slide-toc-item .toc-num { font-size: 8px; opacity: 0.6; }
+.slide-toc-item .toc-label { font-size: 10px; font-weight: 600; }
+.slide-toc-item.current .toc-num { opacity: 1; }
 
 .slide-audio-bar { display: none; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); gap: 8px; }
 .slide-audio-bar.show { display: flex; }
@@ -204,12 +207,12 @@ input, textarea, select, button { font-family: inherit; }
         </div>
         <div class="field-card"><span class="field-label">日期</span><div class="field-value"><input type="text" id="f-date" placeholder="2026.6.7"></div></div>
         <div class="field-card"><span class="field-label">上周</span><div class="field-value"><textarea id="f-lastweek" placeholder="上周的默想或回顾内容..." rows="2"></textarea></div></div>
-        <div class="field-card"><span class="field-label">赞美 1</span><div class="field-value"><input type="text" id="f-praise1" placeholder="91 二十四小时呼吁"><textarea id="f-praise1-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="praise1-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('praise1')" style="display:none;" id="btn-fetch-praise1">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('praise1')" style="display:none;" id="btn-audio-praise1">🎵 本地音频</button></div></div></div>
-        <div class="field-card"><span class="field-label">赞美 2</span><div class="field-value"><input type="text" id="f-praise2" placeholder="118 Remnant"><textarea id="f-praise2-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="praise2-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('praise2')" style="display:none;" id="btn-fetch-praise2">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('praise2')" style="display:none;" id="btn-audio-praise2">🎵 本地音频</button></div></div></div>
-        <div class="field-card"><span class="field-label">特颂</span><div class="field-value"><input type="text" id="f-special" placeholder="没有则留空"><textarea id="f-special-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="special-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('special')" style="display:none;" id="btn-fetch-special">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('special')" style="display:none;" id="btn-audio-special">🎵 本地音频</button></div></div></div>
+        <div class="field-card"><span class="field-label">赞美 1</span><div class="field-value"><input type="text" id="f-praise1" placeholder="91 二十四小时呼吁"><textarea id="f-praise1-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="praise1-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('praise1')" style="display:none;" id="btn-fetch-praise1">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('praise1')" style="display:none;" id="btn-audio-praise1">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('praise1')" style="display:none;" id="btn-dl-praise1">⬇ 下载</button></div></div></div>
+        <div class="field-card"><span class="field-label">赞美 2</span><div class="field-value"><input type="text" id="f-praise2" placeholder="118 Remnant"><textarea id="f-praise2-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="praise2-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('praise2')" style="display:none;" id="btn-fetch-praise2">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('praise2')" style="display:none;" id="btn-audio-praise2">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('praise2')" style="display:none;" id="btn-dl-praise2">⬇ 下载</button></div></div></div>
+        <div class="field-card"><span class="field-label">特颂</span><div class="field-value"><input type="text" id="f-special" placeholder="没有则留空"><textarea id="f-special-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="special-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('special')" style="display:none;" id="btn-fetch-special">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('special')" style="display:none;" id="btn-audio-special">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('special')" style="display:none;" id="btn-dl-special">⬇ 下载</button></div></div></div>
         <div class="field-card"><span class="field-label">诗篇</span><div class="field-value"><input type="text" id="f-psalm" placeholder="23" style="width:80px;"><div class="field-badges" id="psalm-badges"></div></div></div>
-        <div class="field-card"><span class="field-label">新编 1</span><div class="field-value"><input type="text" id="f-hymn1" placeholder="54 心向主宝座歌"><textarea id="f-hymn1-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="hymn1-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('hymn1')" style="display:none;" id="btn-fetch-hymn1">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('hymn1')" style="display:none;" id="btn-audio-hymn1">🎵 本地音频</button></div></div></div>
-        <div class="field-card"><span class="field-label">新编 2</span><div class="field-value"><input type="text" id="f-hymn2" placeholder="258 耶稣领我歌"><textarea id="f-hymn2-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="hymn2-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('hymn2')" style="display:none;" id="btn-fetch-hymn2">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('hymn2')" style="display:none;" id="btn-audio-hymn2">🎵 本地音频</button></div></div></div>
+        <div class="field-card"><span class="field-label">新编 1</span><div class="field-value"><input type="text" id="f-hymn1" placeholder="54 心向主宝座歌"><textarea id="f-hymn1-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="hymn1-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('hymn1')" style="display:none;" id="btn-fetch-hymn1">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('hymn1')" style="display:none;" id="btn-audio-hymn1">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('hymn1')" style="display:none;" id="btn-dl-hymn1">⬇ 下载</button></div></div></div>
+        <div class="field-card"><span class="field-label">新编 2</span><div class="field-value"><input type="text" id="f-hymn2" placeholder="258 耶稣领我歌"><textarea id="f-hymn2-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="hymn2-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('hymn2')" style="display:none;" id="btn-fetch-hymn2">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('hymn2')" style="display:none;" id="btn-audio-hymn2">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('hymn2')" style="display:none;" id="btn-dl-hymn2">⬇ 下载</button></div></div></div>
         <div class="field-card"><span class="field-label">证道 1</span><div class="field-value"><textarea id="f-sermon1" placeholder="赛66：12-24 赐给存留者的应许" rows="2"></textarea></div></div>
         <div class="field-card"><span class="field-label">证道 2</span><div class="field-value"><textarea id="f-sermon2" placeholder="创3：15 永远的黑暗经济" rows="2"></textarea></div></div>
         <div class="field-card"><span class="field-label">论坛要点</span><div class="field-value"><textarea id="f-forum" placeholder="论坛分享的主题..." rows="3"></textarea></div></div>
@@ -451,6 +454,31 @@ const DEFAULT_ENDING_BG_DATA = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABA
 
 function pickAudio(key) {
     document.getElementById('audio-' + key).click();
+}
+
+async function downloadAudio(type) {
+    const info = audioFiles[type];
+    if (!info || !info.url) { showToast('⚠️ 请先搜索歌词获取音频链接', true); return; }
+    // 本地 blob 文件不需要下载
+    if (info.url.startsWith('blob:')) { showToast('📎 已是本地文件'); return; }
+    const songName = document.getElementById('f-' + type).value.trim().replace(/^\d+[\s.、,，]*/, '') || 'song';
+    const filename = songName + '.mp3';
+    try {
+        showToast('⬇ 正在下载 ' + filename + '...');
+        const resp = await fetch(info.url);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const blob = await resp.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast('✅ 已下载：' + filename);
+    } catch (e) {
+        // 直接下载可能被CORS阻止，尝试window.open作为fallback
+        window.open(info.url, '_blank');
+        showToast('⚠️ 直接下载失败，已在新窗口打开，请右键另存为');
+    }
 }
 
 function onAudioSelected(key, input) {
@@ -1862,12 +1890,41 @@ function renderSlide() {
 // ============ TOC (Table of Contents) Navigation ============
 let tocVisible = true;
 
+// 章节名 → 简称映射（1-2字）
+function getSectionAbbr(name) {
+    const map = {
+        '开篇': '开', '题目': '题',
+        '献上赞美': '赞', '赞美': '赞',
+        '请起立': '立',
+        '经文诵读': '经', '诗篇': '诗',
+        '新编赞美': '编', '请坐下': '坐',
+        '特颂': '特',
+        '证道': '证', '讲道': '讲',
+        '信仰告白': '信',
+        '欢迎赞美': '迎', '欢迎': '迎',
+        '结束赞美': '终', '结束': '终',
+        '祝福祷告': '祷', '祷告': '祷',
+        '论坛分享': '论', '论坛要点': '论',
+        '自定义': '自',
+        '以马内利': '结'
+    };
+    // 精确匹配
+    if (map[name]) return map[name];
+    // 模糊匹配 "诗篇 23篇" → "诗"
+    for (const [key, abbr] of Object.entries(map)) {
+        if (name.indexOf(key) === 0) return abbr;
+    }
+    // 取首字
+    return name.charAt(0);
+}
+
 function buildToc() {
     const list = document.getElementById('slide-toc-list');
     const toc = slides._toc || [];
     list.innerHTML = toc.map((item, i) => {
         const cls = 'slide-toc-item' + (i === 0 || (i > 0 && toc[i].name !== toc[i-1].name) ? ' section-start' : '');
-        return '<button class="' + cls + '" data-index="' + item.slideIndex + '" onclick="goToSection(' + i + ')" title="' + esc(item.name) + '">' + (i + 1) + '</button>';
+        const abbr = getSectionAbbr(item.name);
+        return '<button class="' + cls + '" data-index="' + item.slideIndex + '" onclick="goToSection(' + i + ')" title="' + esc(item.name) + '"><span class="toc-num">' + (i + 1) + '</span><span class="toc-label">' + esc(abbr) + '</span></button>';
     }).join('');
 }
 
@@ -3686,8 +3743,10 @@ function checkPraiseNames() {
 function showSongBtns(type) {
     const b1 = document.getElementById('btn-fetch-' + type);
     const b2 = document.getElementById('btn-audio-' + type);
+    const b3 = document.getElementById('btn-dl-' + type);
     if (b1) b1.style.display = '';
     if (b2) b2.style.display = '';
+    if (b3) b3.style.display = '';
     // 显示歌词区（如果已有歌词或搜索过）
     const lyr = document.getElementById('f-' + type + '-lyrics');
     const lyricsVal = (lyr && lyr.value.trim());
