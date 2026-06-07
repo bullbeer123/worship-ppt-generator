@@ -2,1494 +2,262 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>主日礼拜PPT生成器</title>
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<style>
+:root {
+    --bg: #0f0720;
+    --surface: #1a1030;
+    --surface-hover: #241840;
+    --border: rgba(255,255,255,0.08);
+    --border-active: rgba(255,255,255,0.15);
+    --primary: #7c5ce7;
+    --primary-hover: #9070f0;
+    --primary-text: #b8a0f0;
+    --amber: #f0a020;
+    --amber-hover: #f5b840;
+    --text: #ffffff;
+    --text-secondary: rgba(255,255,255,0.65);
+    --text-muted: rgba(255,255,255,0.35);
+    --success: #3dd68c;
+    --success-bg: rgba(61,214,140,0.12);
+    --warning: #f0a020;
+    --warning-bg: rgba(240,160,32,0.12);
+    --error: #f05050;
+    --error-bg: rgba(240,80,80,0.12);
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --font: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    line-height: 1.6;
+}
+input, textarea, select, button { font-family: inherit; }
 
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-            background: linear-gradient(135deg, #2c041d 0%, #5b1a6e 50%, #2c041d 100%);
-            min-height: 100vh;
-            color: #fff;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-        /* 编辑页面右侧留出空间给悬浮面板 */
-        @media (min-width: 769px) {
-            #edit-section .container {
-                padding-right: 106px;
-            }
-        }
-        h1 {
-            text-align: center;
-            font-size: 28px;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-        .subtitle {
-            text-align: center;
-            color: #d4a5e8;
-            margin-bottom: 40px;
-            font-size: 17px;
-        }
-        .step {
-            background: rgba(255,255,255,0.08);
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 24px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .step-title {
-            font-size: 19px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .step-num {
-            background: #8b3fa0;
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold;
-            font-size: 15px;
-        }
-        .paste-area {
-            width: 100%;
-            min-height: 280px;
-            padding: 20px;
-            border: 2px dashed rgba(255,255,255,0.3);
-            border-radius: 12px;
-            background: rgba(255,255,255,0.04);
-            color: #fff;
-            font-size: 16px;
-            font-family: inherit;
-            line-height: 1.7;
-            resize: vertical;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        .paste-area:focus { border-color: #c084fc; }
-        .paste-area::placeholder { color: #8b7a96; }
+.app { max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; display: flex; flex-direction: column; gap: 20px; }
+@media (min-width: 768px) { .app { max-width: 680px; padding: 32px 24px 48px; } }
+@media (min-width: 1024px) { .app { max-width: 760px; } }
 
+.header { text-align: center; padding: 8px 0 4px; }
+.header h1 { font-size: 22px; font-weight: 600; letter-spacing: 0.02em; margin-bottom: 2px; }
+.header p { font-size: 14px; color: var(--text-secondary); }
 
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; }
+.section-title { font-size: 15px; font-weight: 600; }
+.section-badge { font-size: 12px; padding: 2px 10px; border-radius: 12px; background: var(--primary); opacity: 0.2; color: var(--primary-text); }
 
+.paste-area {
+    width: 100%; min-height: 260px; padding: 16px; border: 1.5px dashed var(--border);
+    border-radius: var(--radius); background: rgba(255,255,255,0.03); color: var(--text);
+    font-size: 15px; line-height: 1.7; resize: vertical; outline: none;
+    transition: border-color 0.2s;
+}
+.paste-area:focus { border-color: var(--primary); border-style: solid; }
+.paste-area::placeholder { color: var(--text-muted); }
 
-        .paste-hint {
-            color: #8b7a96;
-            font-size: 14px;
-            margin-top: 10px;
-            line-height: 1.5;
-        }
-        .btn-parse {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: inherit;
-            background: linear-gradient(135deg, #7c3aed, #a855f7);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(139,92,246,0.4);
-            margin-top: 16px;
-        }
-        .btn-parse:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139,92,246,0.6);
-        }
+@media (min-width: 768px) { .paste-area { min-height: 220px; font-size: 16px; } }
 
-        #edit-section { display: none; }
-        .field-group {
-            margin-bottom: 16px;
-        }
-        .field-group label {
-            display: block;
-            font-size: 16px;
-            color: #d4a5e8;
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
-        .field-group input,
-        .field-group textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 8px;
-            background: rgba(255,255,255,0.06);
-            color: #fff;
-            font-size: 16px;
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        .field-group input:focus,
-        .field-group textarea:focus {
-            border-color: #c084fc;
-        }
-        .field-group textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-        .field-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-        .section-divider {
-            border: none;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            margin: 20px 0;
-        }
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #7c3aed, #a855f7);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(139,92,246,0.4);
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139,92,246,0.6);
-        }
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: #d4a5e8;
-            margin-top: 12px;
-        }
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.15);
-        }
-        .btn-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 12px;
-        }
-        .btn-row .btn {
-            font-size: 16px;
-            padding: 14px;
-        }
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 16px; border-radius: var(--radius); font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; user-select: none; min-height: 48px; }
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.4; pointer-events: none; }
 
-        /* 右侧悬浮操作面板 - 紧凑布局 */
-        .side-panel {
-            position: fixed;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 10px 6px;
-            background: linear-gradient(180deg, #5c1a6e, #2c041d);
-            border-radius: 16px 0 0 16px;
-            border: 2px solid rgba(245,215,110,0.45);
-            border-right: none;
-            box-shadow: -6px 0 30px rgba(0,0,0,0.5);
-        }
-        .side-panel .side-btn {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            width: auto;
-            padding: 9px 12px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: inherit;
-            color: #fff;
-            background: rgba(255,255,255,0.12);
-            transition: all 0.25s;
-            white-space: nowrap;
-        }
-        .side-panel .side-btn .side-icon {
-            font-size: 22px;
-            line-height: 1;
-            flex-shrink: 0;
-        }
-        .side-panel .side-btn .side-label {
-            font-size: 15px;
-            font-weight: bold;
-            line-height: 1.2;
-        }
-        .side-panel .side-btn .side-hint {
-            /* 改为小标签嵌在标签旁边 */
-            font-size: 11px;
-            opacity: 0.75;
-            line-height: 1;
-            padding: 2px 6px;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.08);
-            display: inline;
-            white-space: nowrap;
-            margin-left: 3px;
-        }
-        .side-panel .side-btn:hover {
-            background: rgba(255,255,255,0.22);
-            transform: scale(1.04);
-        }
-        .side-panel .side-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        /* 一键匹配按钮 - 绿色（入口操作） */
-        .side-btn-parse { background: rgba(34,197,94,0.25); border: 1px solid rgba(34,197,94,0.5); color: #4ade80; }
-        .side-btn-parse:hover { background: rgba(34,197,94,0.4); }
-        .side-btn-parse.done { background: rgba(34,197,94,0.3) !important; border-color: rgba(34,197,94,0.6) !important; }
-        .side-btn-parse.done .side-label { color: #86efac; }
-        /* 保存按钮 - 金色 */
-        .side-btn-save { background: rgba(245,215,110,0.25); border: 1px solid rgba(245,215,110,0.5); color: #F5D76E; }
-        .side-btn-save:hover { background: rgba(245,215,110,0.4); }
-        .side-btn-save.saved { background: rgba(34,197,94,0.25) !important; border-color: rgba(34,197,94,0.6) !important; color: #4ade80 !important; }
-        .side-btn-save.saved .side-label { color: #4ade80; }
-        /* 音频按钮 - 紫色（用更亮的色） */
-        .side-btn-audio { background: rgba(192,132,252,0.25); border: 1px solid rgba(192,132,252,0.5); color: #d8b4fe; }
-        .side-btn-audio:hover { background: rgba(192,132,252,0.4); }
-        .side-btn-audio:disabled { opacity: 0.5; }
-        .side-btn-audio.done { background: rgba(34,197,94,0.25) !important; border-color: rgba(34,197,94,0.6) !important; color: #4ade80 !important; }
-        .side-btn-audio.done .side-label { color: #4ade80; }
-        /* 生成按钮 - 主色紫 */
-        .side-btn-generate { background: linear-gradient(135deg, #7c3aed, #a855f7); border: 1px solid rgba(168,85,247,0.7); color: #fff; }
-        .side-btn-generate:hover { background: linear-gradient(135deg, #8b5cf6, #b86fff); box-shadow: 0 4px 18px rgba(139,92,246,0.6); }
-        /* 下载按钮 - 蓝色（用更亮的色） */
-        .side-btn-download { background: rgba(96,165,250,0.25); border: 1px solid rgba(96,165,250,0.5); color: #93c5fd; }
-        .side-btn-download:hover { background: rgba(96,165,250,0.4); }
-        /* 重置按钮 - 灰色（用更亮的色） */
-        .side-btn-reset { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25); color: #e2d1f0; }
-        .side-btn-reset:hover { background: rgba(255,255,255,0.2); }
-        /* 自定义页面按钮 - 橙色 */
-        .side-btn-custom { background: rgba(251,146,60,0.2); border: 1px solid rgba(251,146,60,0.5); color: #fb923c; }
-        .side-btn-custom:hover { background: rgba(251,146,60,0.35); }
-        /* 高亮闪烁动画 */
-        @keyframes cp-highlight {
-            0%, 100% { border-color: rgba(245,215,110,0.45); background: rgba(245,215,110,0.08); }
-            50% { border-color: #F5D76E; background: rgba(245,215,110,0.25); box-shadow: 0 0 20px rgba(245,215,110,0.3); }
-        }
-        .cp-item.highlight {
-            animation: cp-highlight 0.8s ease-in-out 3;
-        }
+.btn-amber { background: var(--amber); color: #0f0720; }
+.btn-amber:hover { background: var(--amber-hover); }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text-secondary); }
+.btn-outline:hover { border-color: var(--border-active); color: var(--text); }
+.btn-ghost { background: transparent; color: var(--text-muted); padding: 10px 14px; font-size: 14px; font-weight: 500; }
+.btn-ghost:hover { color: var(--text); }
 
-        /* 777宣告快捷按钮 */
-        .decl-btn {
-            display:inline-block;padding:10px 22px;border:none;border-radius:10px;
-            background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;
-            font-size:17px;font-weight:bold;cursor:pointer;font-family:inherit;
-            transition:all 0.3s;box-shadow:0 3px 12px rgba(139,92,246,0.3);
-            margin:0 4px;
-        }
-        .decl-btn:hover { transform:translateY(-2px); box-shadow:0 5px 18px rgba(139,92,246,0.5); }
+.hint { font-size: 13px; color: var(--text-muted); text-align: center; padding: 6px 0 0; border-top: 1px solid var(--border); }
 
-        /* 777宣告查看弹窗 */
-        .decl-modal-overlay {
-            display:none;position:fixed;top:0;left:0;right:0;bottom:0;
-            background:rgba(0,0,0,0.8);z-index:5000;
-            align-items:center;justify-content:center;padding:20px;
-        }
-        .decl-modal-overlay.show { display:flex; }
-        .decl-modal-window {
-            background:linear-gradient(135deg,#2c041d,#5b1a6e);
-            border-radius:16px;border:1px solid rgba(255,255,255,0.15);
-            max-width:700px;width:100%;max-height:85vh;
-            display:flex;flex-direction:column;
-            box-shadow:0 8px 40px rgba(0,0,0,0.6);
-        }
-        .decl-modal-header {
-            display:flex;align-items:center;justify-content:space-between;
-            padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.1);
-        }
-        .decl-modal-header .title { font-size:20px;color:#F5D76E;font-weight:bold; }
-        .decl-modal-header button {
-            padding:8px 16px;border:1px solid #ef4444;border-radius:8px;
-            background:rgba(239,68,68,0.15);color:#ef4444;font-size:15px;
-            cursor:pointer;font-family:inherit;
-        }
-        .decl-modal-header button:hover { background:rgba(239,68,68,0.25); }
-        .decl-modal-body {
-            flex:1;overflow-y:auto;padding:20px;
-        }
-        .decl-modal-body .item {
-            display:flex;align-items:flex-start;margin-bottom:14px;
-            text-align:left;font-size:17px;line-height:1.7;color:#fff;
-        }
-        .decl-modal-body .item .num {
-            color:#F5D76E;font-weight:bold;margin-right:10px;
-            font-size:19px;flex-shrink:0;min-width:28px;
-        }
-        .decl-modal-body::-webkit-scrollbar { width:6px; }
-        .decl-modal-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.2); border-radius:3px; }
-        /* 手机端底部横排 */
-        @media (max-width: 768px) {
-            .side-panel {
-                position: fixed;
-                right: auto;
-                bottom: 0;
-                top: auto;
-                transform: none;
-                flex-direction: row;
-                border-radius: 16px 16px 0 0;
-                border: 2px solid rgba(245,215,110,0.45);
-                border-bottom: none;
-                width: 100%;
-                justify-content: center;
-                padding: 8px 4px;
-                gap: 4px;
-                overflow-x: auto;
-            }
-            .side-panel .side-btn {
-                width: auto;
-                flex: 0 0 auto;
-                min-width: 56px;
-                padding: 8px 8px;
-                border-radius: 8px;
-            }
-            .side-panel .side-btn .side-icon {
-                font-size: 18px;
-            }
-            .side-panel .side-btn .side-label {
-                font-size: 13px;
-            }
-            .side-panel .side-btn .side-hint {
-                display: none;
-            }
-        }
+.field-card { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 12px; }
+.field-card:last-of-type { border-bottom: none; }
+.field-label { font-size: 14px; font-weight: 600; color: var(--text-secondary); min-width: 56px; flex-shrink: 0; }
+.field-value { text-align: right; flex: 1; min-width: 0; }
+.field-value input, .field-value textarea {
+    width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.04); color: var(--text); font-size: 14px; outline: none;
+    text-align: right; transition: border-color 0.2s;
+}
+.field-value input:focus, .field-value textarea:focus { border-color: var(--primary); }
+.field-value textarea { min-height: 60px; resize: vertical; text-align: left; }
+.field-value .field-val { font-size: 14px; color: var(--text); line-height: 1.5; }
+.field-value .field-val-sm { font-size: 13px; color: var(--text-secondary); }
+.field-badges { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; margin-top: 4px; }
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; display: inline-flex; align-items: center; gap: 2px; }
+.badge-ok { background: var(--success-bg); color: var(--success); }
+.badge-warn { background: var(--warning-bg); color: var(--warning); }
+.badge-err { background: var(--error-bg); color: var(--error); }
 
-        .audio-hint-text {
-            font-size: 13px !important;
-        }
+.field-error { border: 1.5px solid var(--error) !important; background: var(--error-bg) !important; }
 
-        .fetch-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 14px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 6px;
-            background: rgba(255,255,255,0.06);
-            color: #c084fc;
-            font-size: 13px;
-            cursor: pointer;
-            margin-left: 8px;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-        .fetch-btn:hover { background: rgba(192,132,252,0.15); }
-        .fetch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .fetch-btn .spin {
-            display: inline-block;
-            width: 12px; height: 12px;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-top-color: #c084fc;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-        }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 100; padding: 10px 20px; border-radius: var(--radius); font-size: 14px; font-weight: 500; background: var(--surface); border: 1px solid var(--border); color: var(--text); opacity: 0; pointer-events: none; transition: opacity 0.3s; max-width: 90vw; text-align: center; }
+.toast.show { opacity: 1; pointer-events: auto; }
 
-        /* Loading */
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(44,4,29,0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .loading-overlay.show { display: flex; }
-        .spinner {
-            width: 50px; height: 50px;
-            border: 4px solid rgba(255,255,255,0.1);
-            border-top-color: #c084fc;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-text {
-            margin-top: 16px;
-            font-size: 18px;
-            color: #d4a5e8;
-        }
+.loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,7,32,0.85); z-index: 200; justify-content: center; align-items: center; flex-direction: column; gap: 16px; }
+.loading-overlay.show { display: flex; }
+.spinner { width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 16px; color: var(--text-secondary); }
 
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #22c55e;
-            color: #fff;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 500;
-            transition: transform 0.3s;
-            z-index: 2000;
-        }
-        .toast.show { transform: translateX(-50%) translateY(0); }
-        .toast.error { background: #ef4444; }
+.progress-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width 0.3s; }
 
-        /* ======= SLIDESHOW ======= */
-        .slideshow-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: #1a0a12;
-            z-index: 3000;
-            flex-direction: row;
-        }
-        .slideshow-overlay.show { display: flex; }
-        .slide-toc {
-            width: 0;
-            overflow: hidden;
-            background: rgba(0,0,0,0.75);
-            transition: width 0.3s ease;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-        }
-        .slide-toc.show {
-            width: 220px;
-        }
-        .slide-toc-header {
-            padding: 14px 16px;
-            font-size: 16px;
-            color: rgba(255,255,255,0.7);
-            border-bottom: 1px solid rgba(255,255,255,0.15);
-            flex-shrink: 0;
-        }
-        .slide-toc-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 8px 0;
-        }
-        .slide-toc-list::-webkit-scrollbar { width: 6px; }
-        .slide-toc-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
-        .slide-toc-item {
-            display: block;
-            width: 100%;
-            padding: 12px 18px;
-            border: none;
-            background: none;
-            color: rgba(255,255,255,0.7);
-            font-size: 16px;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.15s;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-family: inherit;
-            line-height: 1.5;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .slide-toc-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-        }
-        .slide-toc-item.active {
-            color: #c084fc;
-            background: rgba(192,132,252,0.15);
-            font-weight: 600;
-        }
-        .slide-toc-item .toc-num {
-            display: inline-block;
-            min-width: 22px;
-            color: rgba(255,255,255,0.4);
-            font-size: 13px;
-            margin-right: 6px;
-        }
-        .slide-toc-item.active .toc-num {
-            color: rgba(192,132,252,0.7);
-        }
-        .slide-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-        .slide-viewport {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-        }
-        .slide-page {
-            width: min(100vw, calc(100vh * 16 / 9));
-            height: min(100vh, calc(100vw * 9 / 16));
-            background: #5B1A6E;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            padding: 3% 5%;
-            box-sizing: border-box;
-            transition: opacity 0.4s ease;
-            --fs-scale: 1;
-            --lh: 1.6;
-            overflow: hidden;
-        }
-        .slide-page .s-title {
-            font-size: calc(clamp(24px, 5vw, 96px) * var(--fs-scale));
-            color: #fff;
-            font-weight: bold;
-            text-align: center;
-            line-height: var(--lh);
-        }
-        .slide-page .s-subtitle {
-            font-size: calc(clamp(18px, 3.5vw, 72px) * var(--fs-scale));
-            color: #F5D76E;
-            text-align: center;
-            margin-top: 6px;
-            line-height: var(--lh);
-        }
-        .slide-page .s-body {
-            font-size: calc(clamp(18px, 4vw, 80px) * var(--fs-scale));
-            color: #fff;
-            text-align: center;
-            line-height: var(--lh);
-            margin-top: 14px;
-            max-width: 95%;
-            word-break: break-word;
-            overflow-wrap: break-word;
-        }
-        .slide-page .s-meditation {
-            text-align: center;
-            margin-top: 28px;
-            padding: 18px 10% 10px;
-            border-top: 2px solid rgba(245, 215, 118, 0.4);
-        }
-        .slide-page .s-meditation-tag {
-            display: inline-block;
-            background: rgba(245, 215, 118, 0.15);
-            color: #F5D76E;
-            font-size: calc(clamp(14px, 2.2vw, 32px) * var(--fs-scale));
-            padding: 2px 16px;
-            border-radius: 4px;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-        }
-        .slide-page .s-meditation-text {
-            font-size: calc(clamp(22px, 4vw, 56px) * var(--fs-scale));
-            color: #F5D76E;
-            font-weight: 400;
-            line-height: 1.6;
-            letter-spacing: 1px;
-        }
-        .slide-page .s-footer {
-            position: absolute;
-            bottom: 5%;
-            left: 0; right: 0;
-            text-align: center;
-            font-size: calc(clamp(12px, 2vw, 36px) * var(--fs-scale));
-            color: #F5D76E;
-            line-height: var(--lh);
-        }
-        .slide-page .s-cover-date {
-            font-size: calc(clamp(28px, 5.5vw, 96px) * var(--fs-scale));
-            color: #fff;
-            font-weight: bold;
-            line-height: var(--lh);
-        }
-        .slide-page .s-cover-label {
-            font-size: calc(clamp(16px, 2.8vw, 48px) * var(--fs-scale));
-            color: #F5D76E;
-            line-height: var(--lh);
-        }
-        .slide-page .s-cover-title {
-            font-size: calc(clamp(22px, 4vw, 72px) * var(--fs-scale));
-            color: #fff;
-            font-weight: bold;
-            text-align: center;
-            line-height: var(--lh);
-        }
-        .slide-nav {
-            height: 60px;
-            background: rgba(0,0,0,0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            flex-shrink: 0;
-        }
-        .slide-nav button {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.25);
-            color: #fff;
-            min-width: 44px; height: 44px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 15px;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
-            padding: 0 10px;
-            white-space: nowrap;
-            font-family: inherit;
-        }
-        .slide-nav button:hover { background: rgba(255,255,255,0.18); }
-        .slide-nav .slide-counter {
-            color: rgba(255,255,255,0.8);
-            font-size: 18px;
-            min-width: 70px;
-            text-align: center;
-        }
-        .slide-nav .btn-close-slideshow {
-            border-color: #ef4444;
-            color: #ef4444;
-            margin-left: 10px;
-            width: auto;
-            padding: 0 16px;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 500;
-        }
-        .slide-adjust {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border-left: 1px solid rgba(255,255,255,0.15);
-            padding-left: 12px;
-            margin-left: 4px;
-        }
-        .slide-adjust label {
-            color: rgba(255,255,255,0.6);
-            font-size: 14px;
-            white-space: nowrap;
-        }
-        .slide-adjust button {
-            width: 36px; height: 36px;
-            font-size: 20px;
-            border-radius: 10px;
-            padding: 0;
-        }
-        .slide-adjust span {
-            color: #fff;
-            font-size: 15px;
-            min-width: 38px;
-            text-align: center;
-        }
+.slide-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0f0720; z-index: 300; flex-direction: column; }
+.slide-overlay.show { display: flex; }
+.slide-stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.slide-page { width: min(100vw, calc(100vh * 16/9)); height: min(100vh, calc(100vw * 9/16)); background: #5B1A6E; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 3% 5%; overflow: hidden; border-radius: 4px; --fs-scale: 1; --lh: 1.6; }
+.slide-page .s-title { font-size: calc(clamp(24px,5vw,96px) * var(--fs-scale)); color: #fff; font-weight: 700; text-align: center; line-height: var(--lh); }
+.slide-page .s-subtitle { font-size: calc(clamp(18px,3.5vw,72px) * var(--fs-scale)); color: #F5D76E; text-align: center; margin-top: 6px; line-height: var(--lh); }
+.slide-page .s-body { font-size: calc(clamp(18px,4vw,80px) * var(--fs-scale)); color: #fff; text-align: center; line-height: var(--lh); margin-top: 14px; max-width: 95%; word-break: break-word; }
+.slide-page .s-cover-label { font-size: calc(clamp(16px,3vw,56px)*var(--fs-scale)); color: #F5D76E; text-align: center; margin-top: -10px; }
+.slide-page .s-meditation { text-align: center; margin-top: 28px; padding: 18px 10% 10px; border-top: 2px solid rgba(245,215,118,0.4); }
+.slide-page .s-meditation-tag { display: inline-block; background: rgba(245,215,118,0.15); color: #F5D76E; font-size: calc(clamp(14px,2.2vw,32px)*var(--fs-scale)); padding: 2px 16px; border-radius: 4px; letter-spacing: 2px; margin-bottom: 10px; }
+.slide-page .s-meditation-text { font-size: calc(clamp(22px,4vw,56px)*var(--fs-scale)); color: #F5D76E; font-weight: 400; line-height: 1.6; letter-spacing: 1px; }
+.slide-page .s-footer { position: absolute; bottom: 5%; left: 0; right: 0; text-align: center; font-size: calc(clamp(12px,2vw,36px)*var(--fs-scale)); color: #F5D76E; line-height: var(--lh); }
 
-        .ext-link {
-            color: #c084fc;
-            text-decoration: none;
-            font-size: 13px;
-            margin-left: 8px;
-            opacity: 0.7;
-        }
-        .ext-link:hover { opacity: 1; text-decoration: underline; }
+.slide-controls { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); }
+.slide-ctrl-btn { padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.slide-ctrl-btn:hover { border-color: var(--border-active); color: var(--text); }
+.slide-ctrl-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.slide-counter { font-size: 13px; color: var(--text-secondary); min-width: 48px; text-align: center; }
+.slide-toc { display: flex; gap: 4px; padding: 6px 16px; overflow-x: auto; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); }
+.slide-toc-item { flex-shrink: 0; width: 32px; height: 24px; border-radius: 4px; background: var(--border); border: none; cursor: pointer; font-size: 10px; color: var(--text-muted); transition: all 0.15s; }
+.slide-toc-item.current { background: var(--primary); color: #fff; width: 40px; }
+.slide-toc-item.section-start { border-left: 2px solid var(--amber); }
 
-        /* Audio player in slideshow */
-        .slide-audio-bar {
-            height: 0;
-            overflow: hidden;
-            transition: height 0.3s;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            padding: 0 20px;
-            flex-shrink: 0;
-        }
-        .slide-audio-bar.show {
-            height: 56px;
-        }
-        .slide-audio-bar .audio-name {
-            color: rgba(255,255,255,0.8);
-            font-size: 15px;
-            max-width: 240px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .slide-audio-bar button {
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: #fff;
-            width: 44px; height: 44px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
-        }
-        .slide-audio-bar button:hover { background: rgba(255,255,255,0.22); }
-        .slide-audio-bar .audio-time {
-            color: rgba(255,255,255,0.7);
-            font-size: 15px;
-            min-width: 70px;
-            text-align: center;
-        }
-        /* 音频进度条 */
-        .slide-audio-bar .audio-progress-wrap {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            min-width: 80px;
-        }
-        .slide-audio-bar .audio-progress {
-            width: 100%;
-            height: 6px;
-            -webkit-appearance: none;
-            appearance: none;
-            background: rgba(255,255,255,0.2);
-            border-radius: 3px;
-            cursor: pointer;
-            outline: none;
-        }
-        .slide-audio-bar .audio-progress::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px; height: 14px;
-            border-radius: 50%;
-            background: #c084fc;
-            cursor: pointer;
-            box-shadow: 0 0 4px rgba(192,132,252,0.6);
-        }
-        .slide-audio-bar .audio-progress::-moz-range-thumb {
-            width: 14px; height: 14px;
-            border-radius: 50%;
-            background: #c084fc;
-            cursor: pointer;
-            border: none;
-        }
-        /* 音频缓存状态标识 */
-        .audio-cache-badge {
-            font-size: 12px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .audio-cache-badge.downloading {
-            background: rgba(245,215,110,0.2);
-            color: #F5D76E;
-            border: 1px solid rgba(245,215,110,0.4);
-        }
-        .audio-cache-badge.cached {
-            background: rgba(34,197,94,0.2);
-            color: #4ade80;
-            border: 1px solid rgba(34,197,94,0.4);
-        }
-        .audio-cache-badge.failed {
-            background: rgba(239,68,68,0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(239,68,68,0.4);
-        }
+.slide-audio-bar { display: none; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); gap: 8px; }
+.slide-audio-bar.show { display: flex; }
+.audio-name { font-size: 13px; color: var(--text-secondary); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.audio-time { font-size: 11px; color: var(--text-muted); min-width: 80px; text-align: center; }
+.audio-progress { flex: 1; height: 4px; -webkit-appearance: none; background: var(--border); border-radius: 2px; cursor: pointer; }
+.audio-progress::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); }
 
-        .chalk-input-bar {
-            display: none;
-            flex-direction: column;
-            gap: 6px;
-            padding: 8px 14px;
-            background: rgba(0,0,0,0.55);
-            border-top: 1px solid rgba(255,255,255,0.08);
-            flex-shrink: 0;
-        }
-        .chalk-input-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .chalk-props-row {
-            display: none;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 0 2px;
-            border-top: 1px solid rgba(255,255,255,0.08);
-        }
-        .chalk-input-bar input, .chalk-props-row input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 8px;
-            background: rgba(255,255,255,0.08);
-            color: #fff;
-            font-size: 15px;
-            font-family: inherit;
-            outline: none;
-            min-width: 0;
-        }
-        .chalk-input-bar input:focus, .chalk-props-row input:focus { border-color: #F5D76E; }
-        .chalk-input-bar input::placeholder, .chalk-props-row input::placeholder { color: #8b7a96; }
-        .chalk-input-bar button, .chalk-props-row button {
-            padding: 7px 14px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(192,132,252,0.2);
-            color: #c084fc;
-            font-size: 14px;
-            cursor: pointer;
-            font-family: inherit;
-            white-space: nowrap;
-            transition: background 0.2s;
-        }
-        .chalk-input-bar button:hover, .chalk-props-row button:hover { background: rgba(192,132,252,0.35); }
-        .chalk-props-row select {
-            padding: 6px 8px;
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 6px;
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            font-size: 14px;
-            font-family: inherit;
-            cursor: pointer;
-            outline: none;
-        }
-        .chalk-props-row select option { background: #333; color: #fff; }
+.side-panel { position: fixed; right: 8px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6px; z-index: 50; }
+@media (max-width: 768px) { .side-panel { display: none; } }
 
-        /* 板书绝对定位文本框样式 */
-        .chalk-abs-textbox {
-            position: absolute;
-            background: rgba(255,255,255,0.10);
-            border: 2px solid transparent;
-            border-radius: 10px;
-            color: #fff;
-            line-height: 1.4;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 6px 10px;
-            word-break: break-word;
-            overflow: hidden;
-            box-sizing: border-box;
-            user-select: none;
-            outline: none;
-            transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
-        }
-        .chalk-abs-textbox:hover {
-            background: rgba(255,255,255,0.14);
-            border-color: rgba(255,255,255,0.10);
-        }
-        .chalk-abs-textbox.chk-selected {
-            border-color: #F5D76E;
-            box-shadow: 0 0 0 2px rgba(245,215,110,0.3);
-        }
-        .chalk-abs-textbox.chk-editing {
-            border-color: #F5D76E;
-            background: rgba(245,215,118,0.10);
-            user-select: text;
-            cursor: text;
-        }
+.side-btn { padding: 10px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); font-size: 12px; cursor: pointer; writing-mode: horizontal-tb; text-align: center; transition: all 0.15s; min-width: 52px; }
+.side-btn:hover { border-color: var(--border-active); color: var(--text); }
+.side-btn.done { border-color: var(--success); color: var(--success); }
 
-        .example-toggle {
-            background: none;
-            border: none;
-            color: #8b7a96;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 8px;
-            font-family: inherit;
-            text-decoration: underline;
-        }
-        .example-toggle:hover { color: #c084fc; }
-        .example-box {
-            display: none;
-            margin-top: 12px;
-            padding: 14px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.04);
-            font-size: 13px;
-            color: #8b7a96;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            font-family: monospace;
-        }
-        .example-box.show { display: block; }
+.text-editor textarea { min-height: 80px; }
+.text-placeholder { color: var(--text-muted); font-size: 14px; text-align: center; padding: 20px; }
 
-
-        /* ======= Custom Page Manager ======= */
-        .custom-page-section { margin-top: 24px; }
-        .custom-page-header {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
-        }
-        .custom-page-header .title {
-            font-size: 19px; font-weight: bold; color: #F5D76E;
-        }
-        .custom-page-header .count {
-            font-size: 14px; color: #8b7a96;
-        }
-        .cp-add-btn {
-            padding: 10px 20px; border: 2px dashed rgba(245,215,110,0.4);
-            border-radius: 10px; background: rgba(245,215,110,0.08);
-            color: #F5D76E; font-size: 15px; cursor: pointer;
-            font-family: inherit; transition: all 0.3s;
-        }
-        .cp-add-btn:hover { background: rgba(245,215,110,0.2); border-color: rgba(245,215,110,0.7); }
-        .cp-list { display: flex; flex-direction: column; gap: 6px; }
-        .cp-item {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 10px 14px; border-radius: 10px;
-            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-        }
-        .cp-item .name {
-            font-size: 15px; color: #d4a5e8; font-weight: 500; cursor: pointer;
-        }
-        .cp-item .name:hover { color: #c084fc; }
-        .cp-item .actions { display: flex; gap: 4px; }
-        .cp-item .actions button {
-            width: 32px; height: 32px; border: none; border-radius: 6px;
-            cursor: pointer; font-size: 14px; transition: all 0.2s;
-            background: rgba(255,255,255,0.08); color: #d4a5e8;
-            font-family: inherit; display: flex; align-items: center; justify-content: center;
-        }
-        .cp-item .actions button:hover { background: rgba(255,255,255,0.2); }
-        .cp-item .actions .del-btn:hover { background: rgba(239,68,68,0.3); color: #fca5a5; }
-        .cp-item .actions .edit-btn:hover { background: rgba(192,132,252,0.3); color: #d8b4fe; }
-
-        /* ======= Drag Editor Overlay ======= */
-        .cp-editor-overlay {
-            display: none;
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8); z-index: 4000;
-            flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px;
-        }
-        .cp-editor-overlay.show { display: flex; }
-        .cp-editor-window {
-            background: linear-gradient(135deg, #2c041d, #5b1a6e);
-            border-radius: 16px; border: 1px solid rgba(255,255,255,0.15);
-            width: 100%; max-width: 900px;
-            display: flex; flex-direction: column;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.6);
-        }
-        .cp-editor-toolbar {
-            display: flex; align-items: center; gap: 8px;
-            padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.1);
-            flex-wrap: wrap;
-        }
-        .cp-editor-toolbar .title {
-            font-size: 16px; color: #F5D76E; font-weight: bold; margin-right: auto;
-        }
-        .cp-editor-toolbar button {
-            padding: 8px 14px; border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px; background: rgba(255,255,255,0.08);
-            color: #fff; font-size: 14px; cursor: pointer;
-            font-family: inherit; transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .cp-editor-toolbar button:hover { background: rgba(255,255,255,0.18); }
-        .cp-editor-toolbar .close-btn { border-color: #ef4444; color: #ef4444; }
-        .cp-editor-toolbar .close-btn:hover { background: rgba(239,68,68,0.2); }
-        .cp-editor-toolbar .del-el-btn { border-color: #ef4444; color: #ef4444; display: none; }
-        .cp-editor-toolbar .del-el-btn.show { display: inline-flex; }
-
-        /* 选中元素属性工具栏 */
-        .cp-prop-bar {
-            display: none; align-items: center; gap: 8px;
-            padding: 8px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);
-            background: rgba(255,255,255,0.03); flex-wrap: wrap;
-        }
-        .cp-prop-bar.show { display: flex; }
-        .cp-prop-bar label { color: #8b7a96; font-size: 13px; white-space: nowrap; }
-        .cp-prop-bar input, .cp-prop-bar select {
-            padding: 4px 8px; border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 4px; background: rgba(255,255,255,0.08);
-            color: #fff; font-size: 13px; font-family: inherit; outline: none;
-        }
-        .cp-prop-bar input[type="color"] {
-            width: 32px; height: 28px; padding: 2px; cursor: pointer;
-        }
-        .cp-prop-bar input[type="number"] { width: 50px; }
-        .cp-prop-bar button {
-            padding: 4px 10px; border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 4px; background: rgba(255,255,255,0.08);
-            color: #fff; font-size: 13px; cursor: pointer;
-            font-family: inherit;
-        }
-        .cp-prop-bar button:hover { background: rgba(255,255,255,0.18); }
-        .cp-prop-bar button.active { background: rgba(192,132,252,0.3); border-color: #c084fc; }
-
-        /* 编辑画布 */
-        .cp-canvas-wrap {
-            flex: 1; min-height: 0;
-            display: flex; align-items: center; justify-content: center;
-            padding: 16px; overflow: hidden;
-        }
-        .cp-canvas {
-            width: 100%; max-width: 800px;
-            aspect-ratio: 16 / 9;
-            background: #5B1A6E;
-            position: relative;
-            overflow: hidden;
-            border-radius: 4px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-            cursor: default;
-            user-select: none;
-        }
-        .cp-element {
-            position: absolute;
-            cursor: move;
-            border: 2px solid transparent;
-            transition: border-color 0.15s;
-            box-sizing: border-box;
-            overflow: hidden;
-            min-width: 30px; min-height: 20px;
-        }
-        .cp-element:hover { border-color: rgba(255,255,255,0.2); }
-        .cp-element.selected {
-            border-color: #c084fc;
-            box-shadow: 0 0 0 1px rgba(192,132,252,0.3);
-        }
-        .cp-element .el-content {
-            width: 100%; height: 100%;
-            display: flex; align-items: center; justify-content: center;
-            pointer-events: none;
-            word-break: break-word;
-        }
-        .cp-element .el-content img {
-            max-width: 100%; max-height: 100%;
-            object-fit: contain;
-            pointer-events: none;
-        }
-        /* Resize handles */
-        .cp-element .resize-handle {
-            position: absolute;
-            width: 10px; height: 10px;
-            background: #c084fc;
-            border: 1px solid #fff;
-            border-radius: 2px;
-            z-index: 10;
-            display: none;
-        }
-        .cp-element.selected .resize-handle { display: block; }
-        .resize-handle.nw { top: -5px; left: -5px; cursor: nw-resize; }
-        .resize-handle.ne { top: -5px; right: -5px; cursor: ne-resize; }
-        .resize-handle.sw { bottom: -5px; left: -5px; cursor: sw-resize; }
-        .resize-handle.se { bottom: -5px; right: -5px; cursor: se-resize; }
-
-        /* 双击编辑文字 */
-        .cp-element .text-editor {
-            display: none;
-            width: 100%; height: 100%;
-            border: none; outline: none;
-            background: rgba(0,0,0,0.3);
-            color: inherit; font-size: inherit;
-            font-family: inherit; text-align: inherit;
-            resize: none; padding: 8px;
-            box-sizing: border-box;
-            position: absolute; top: 0; left: 0;
-        }
-        .cp-element.editing .text-editor { display: block; }
-        .cp-element.editing .el-content { display: none; }
-        .cp-element.editing { border-color: #F5D76E; }
-
-        /* 空画布提示 */
-        .cp-canvas-empty {
-            position: absolute;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: rgba(255,255,255,0.3);
-            font-size: 18px; text-align: center;
-            pointer-events: none;
-        }
-
-        @media (max-width: 768px) {
-            .cp-editor-overlay { padding: 8px; }
-            .cp-editor-toolbar { padding: 8px 10px; font-size: 13px; }
-            .cp-editor-toolbar button { font-size: 12px; padding: 6px 10px; }
-            .cp-prop-bar { padding: 6px 10px; }
-            .cp-prop-bar label { font-size: 12px; }
-            .cp-canvas-wrap { padding: 8px; }
-        }
-    </style>
+.ai-badge { display: inline-block; font-size: 11px; padding: 1px 10px; border-radius: 10px; margin-left: 8px; vertical-align: middle; font-weight: 500; transition: all 0.3s; }
+.ai-badge-on { background: var(--success-bg); color: var(--success); }
+.ai-badge-off { background: var(--error-bg); color: var(--error); }
+</style>
 </head>
 <body>
 
-<div class="container">
-    <h1>⛪ 主日礼拜PPT生成器</h1>
-    <p class="subtitle">粘贴礼拜内容 → 一键生成幻灯片</p>
-
-    <!-- 777宣告快捷入口 -->
-    <div id="decl-quick-btns" style="display:none;text-align:center;margin-bottom:18px;gap:10px;flex-wrap:wrap;justify-content:center;">
-        <span style="color:#F5D76E;font-weight:bold;font-size:16px;">📜 777宣告</span>
-        <button class="decl-btn" onclick="show777Section('7大望楼')">7大望楼</button>
-        <button class="decl-btn" onclick="show777Section('7大旅程')">7大旅程</button>
-        <button class="decl-btn" onclick="show777Section('7大里程碑')">7大里程碑</button>
+<div class="app">
+    <!-- Header -->
+    <div class="header">
+        <h1>主日礼拜PPT生成器</h1>
+        <p>粘贴内容，一键生成幻灯片</p>
     </div>
 
-    <!-- 恢复记录横幅 - 放在最顶部最醒目位置 -->
-    <div id="restore-bar-top" style="display:none;margin-bottom:24px;">
-        <div style="background:linear-gradient(135deg,rgba(245,215,110,0.15),rgba(192,132,252,0.15));border:2px solid rgba(245,215,110,0.5);border-radius:16px;padding:20px 24px;text-align:center;">
-            <div style="font-size:18px;font-weight:bold;color:#F5D76E;margin-bottom:6px;">📂 找到上次保存的记录</div>
-            <div id="restore-time-label" style="font-size:15px;color:#d4a5e8;margin-bottom:14px;"></div>
-            <button id="restore-btn-top" onclick="restoreLastRecord()" style="display:inline-block;padding:14px 48px;border:none;border-radius:12px;background:linear-gradient(135deg,#F5D76E,#e6c44d);color:#2c041d;font-size:20px;font-weight:bold;cursor:pointer;font-family:inherit;box-shadow:0 4px 15px rgba(245,215,110,0.4);transition:all 0.3s;">
-                恢复上次记录
-            </button>
-            <div style="color:#c9b1d4;font-size:14px;margin-top:12px;line-height:1.5;">💡 音频、经文等数据会一并恢复，可直接生成幻灯片</div>
+    <!-- Screen 1: Input -->
+    <div class="section" id="input-section">
+        <div class="section-header">
+            <span class="section-title">礼拜内容</span>
+            <span class="ai-badge ai-badge-off" id="ai-badge">检测AI中</span>
         </div>
-    </div>
-
-    <!-- Step 1: Paste text -->
-    <div class="step">
-        <div class="step-title">
-            <span class="step-num">1</span>
-            粘贴礼拜内容
-            <span id="ai-badge" class="ai-badge-off" style="display:inline-block;font-size:11px;padding:1px 10px;border-radius:10px;margin-left:8px;vertical-align:middle;font-weight:normal;transition:0.3s;">⏳ 检测AI...</span>
-        </div>
-        <textarea class="paste-area" id="paste-area" placeholder="把手机备忘录里的文字直接粘贴到这里...&#10;&#10;格式示例：&#10;Sunday worship 2026.4.12&#10;题目&#10;撒上16:1-13要拯救世界的圣殿的开始&#10;创4:16-16、5:1-32血统&#10;赞美:76人生理由，131望楼的祷告&#10;诗篇:23篇&#10;论坛(提问):&#10;大卫因没有圣殿而哭，我在为什么哭?&#10;777的祷告-绝对望楼"></textarea>
-        <div class="paste-hint">
-            💡 粘贴文字后，点下方「✨ 解析内容」自动填写
-        </div>
-        <button class="example-toggle" onclick="document.getElementById('example-box').classList.toggle('show')">
-            ▸ 查看完整格式示例
-        </button>
-        <div class="example-box" id="example-box">Sunday worship 2026.4.12
-上周:默想复活的基督与我同在的应许
-题目
-撒上16:1-13要拯救世界的圣殿的开始
-创4:16-16、5:1-32血统
-赞美:76人生理由，131望楼的祷告
-诗篇:23篇
-新编赞美:277，337
-论坛:默想复活的基督与我同在的应许
-大卫因没有圣殿而哭，我在为什么哭?
-我的24小时祷告题目是什么?
-777的祷告-绝对望楼
-777的话语-绝对旅程
-777的传道宣教-绝对里程碑</div>
-        <!-- 拍照识别隐藏输入 -->
+        <textarea class="paste-area" id="paste-area" placeholder="把手机备忘录里的文字直接粘贴到这里...&#10;&#10;格式示例：&#10;Sundayworship2026.6.7&#10;上周：...&#10;赛66：12-24赐给存留者的应许&#10;赞美：91二十四小时呼吁&#10;诗篇：23篇&#10;新编赞美：54心向主宝座歌&#10;论坛：..."></textarea>
         <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoUpload(this)">
-        <div style="display:flex;gap:12px;margin-top:16px;">
-            <button class="btn-parse" onclick="parseText()" style="flex:1;">
-                ✨ 解析内容
-            </button>
-            <button class="btn-parse" onclick="openPhotoCapture()"
-                style="flex:1;background:linear-gradient(135deg,#06b6d4,#0891b2);box-shadow:0 4px 15px rgba(6,182,212,0.4);">
-                📷 拍照识别
-            </button>
+        <div class="btn-grid">
+            <button class="btn btn-amber" onclick="oneClickGenerate()">帮我做</button>
+            <button class="btn btn-primary" onclick="parseText()">解析内容</button>
         </div>
-        <div style="text-align:center;margin-top:6px;">
-            <span style="font-size:13px;color:#8b7a96;">💡 拍节目单照片，AI自动识别并填入所有字段</span>
+        <div class="btn-grid">
+            <button class="btn btn-outline" onclick="openPhotoCapture()">拍照识别</button>
+            <button class="btn btn-ghost" onclick="restoreLastRecord()">恢复记录</button>
         </div>
-        <div style="display:flex;gap:12px;margin-top:8px;">
-            <button class="btn-parse" onclick="oneClickGenerate()"
-                style="flex:1;background:linear-gradient(135deg,#f59e0b,#e85d04);box-shadow:0 4px 15px rgba(245,158,11,0.4);">
-                🤖 帮我做
-            </button>
-        </div>
-        <div style="text-align:center;margin-top:6px;">
-            <span style="font-size:13px;color:#fbbf24;opacity:0.8;">💡 「帮我做」= 解析 + 搜音频经文 + 生成幻灯片，一步到位</span>
-        </div>
+        <div class="hint">按「帮我做」自动完成解析、搜索歌词音频、生成幻灯片</div>
     </div>
 
-    <!-- Step 2: Edit -->
-    <div class="step" id="edit-section">
-        <div class="step-title">
-            <span class="step-num">2</span>
-            确认 / 修改内容
-            <a class="ext-link" href="https://star.top237.top" target="_blank">🔗 发光如星</a>
+    <!-- Screen 2: Review & Edit (hidden initially) -->
+    <div class="section" id="edit-section" style="display:none;">
+        <div class="section-header">
+            <span class="section-title">确认 / 修改</span>
+            <span class="section-badge" id="field-count">0 项</span>
         </div>
-
-        <hr class="section-divider">
-
-        <div class="field-group">
-            <label>📋 上周内容</label>
-            <textarea id="f-lastweek" placeholder="上周的默想或回顾内容..."></textarea>
-        </div>
-
-        <div class="field-group">
-            <label>📅 礼拜日期</label>
-            <input type="text" id="f-date" placeholder="例如：2026.4.12">
-        </div>
-
-        <hr class="section-divider">
-
-        <div class="field-row">
-            <div class="field-group">
-                <label>🎵 献上赞美（第1首）</label>
-                <input type="text" id="f-praise1" placeholder="例如：76 人生理由">
-                <button class="fetch-btn" onclick="fetchLyrics('praise1')" style="margin-top:6px;">🔍 搜索歌词+音频</button>
-                <button class="fetch-btn" onclick="pickAudio('praise1')" style="margin-top:6px;">🎵 选择音频</button>
-                <input type="file" id="audio-praise1" accept="audio/*" style="display:none" onchange="onAudioSelected('praise1',this)">
-                <div id="audio-praise1-name" style="font-size:13px;color:#8b7a96;margin-top:4px;"></div>
-            </div>
-            <div class="field-group">
-                <label>🎵 献上赞美（第2首）</label>
-                <input type="text" id="f-praise2" placeholder="例如：131 望楼的祷告">
-                <button class="fetch-btn" onclick="fetchLyrics('praise2')" style="margin-top:6px;">🔍 搜索歌词+音频</button>
-                <button class="fetch-btn" onclick="pickAudio('praise2')" style="margin-top:6px;">🎵 选择音频</button>
-                <input type="file" id="audio-praise2" accept="audio/*" style="display:none" onchange="onAudioSelected('praise2',this)">
-                <div id="audio-praise2-name" style="font-size:13px;color:#8b7a96;margin-top:4px;"></div>
-            </div>
-        </div>
-
-        <div class="field-group" id="praise1-lyrics-group" style="display:none;">
-            <label>🎵 献上赞美1 歌词</label>
-            <textarea id="f-praise1-lyrics" rows="6" placeholder="歌词将自动填入或手动粘贴..."></textarea>
-        </div>
-        <div class="field-group" id="praise2-lyrics-group" style="display:none;">
-            <label>🎵 献上赞美2 歌词</label>
-            <textarea id="f-praise2-lyrics" rows="6" placeholder="歌词将自动填入或手动粘贴..."></textarea>
-        </div>
-
-        <div class="field-group">
-            <label>🌟 特颂（特殊赞美，可选）</label>
-            <input type="text" id="f-special" placeholder="例如：45 恩典之路（没有则留空）">
-            <button class="fetch-btn" onclick="fetchLyrics('special')" style="margin-top:6px;">🔍 搜索歌词+音频</button>
-            <button class="fetch-btn" onclick="pickAudio('special')" style="margin-top:6px;">🎵 选择音频</button>
-            <input type="file" id="audio-special" accept="audio/*" style="display:none" onchange="onAudioSelected('special',this)">
-            <div id="audio-special-name" style="font-size:13px;color:#8b7a96;margin-top:4px;"></div>
-        </div>
-        <div class="field-group" id="special-lyrics-group" style="display:none;">
-            <label>🌟 特颂 歌词</label>
-            <textarea id="f-special-lyrics" rows="6" placeholder="歌词将自动填入或手动粘贴..."></textarea>
-        </div>
-
-        <div class="field-row">
-            <div class="field-group">
-                <label>📖 诵读经文（诗篇编号）</label>
-                <input type="text" id="f-psalm" placeholder="例如：23">
-            </div>
-            <div class="field-group" style="display:flex;align-items:flex-end;">
-                <button class="fetch-btn" onclick="fetchBible('psalm')" style="margin-left:0;">🔍 自动获取诗篇经文</button>
-            </div>
-        </div>
-
-        <div class="field-group" id="psalm-content-group" style="display:none;">
-            <label>📖 经文内容（自动获取，可修改）</label>
-            <textarea id="f-psalm-content" rows="8" placeholder="经文内容将自动填入..."></textarea>
-        </div>
-
-        <hr class="section-divider">
-
-        <div class="field-row">
-            <div class="field-group">
-                <label>🎵 新编赞美（第1首）</label>
-                <input type="text" id="f-hymn1" placeholder="例如：277 我知所信歌">
-                <button class="fetch-btn" onclick="fetchLyrics('hymn1')" style="margin-top:6px;">🔍 搜索歌词+音频</button>
-                <button class="fetch-btn" onclick="pickAudio('hymn1')" style="margin-top:6px;">🎵 选择音频</button>
-                <input type="file" id="audio-hymn1" accept="audio/*" style="display:none" onchange="onAudioSelected('hymn1',this)">
-                <div id="audio-hymn1-name" style="font-size:13px;color:#8b7a96;margin-top:4px;"></div>
-            </div>
-            <div class="field-group">
-                <label>🎵 新编赞美（第2首）</label>
-                <input type="text" id="f-hymn2" placeholder="例如：337 无我惟主歌">
-                <button class="fetch-btn" onclick="fetchLyrics('hymn2')" style="margin-top:6px;">🔍 搜索歌词+音频</button>
-                <button class="fetch-btn" onclick="pickAudio('hymn2')" style="margin-top:6px;">🎵 选择音频</button>
-                <input type="file" id="audio-hymn2" accept="audio/*" style="display:none" onchange="onAudioSelected('hymn2',this)">
-                <div id="audio-hymn2-name" style="font-size:13px;color:#8b7a96;margin-top:4px;"></div>
-            </div>
-        </div>
-
-        <div class="field-group" id="hymn1-lyrics-group" style="display:none;">
-            <label>🎵 新编赞美1 歌词</label>
-            <textarea id="f-hymn1-lyrics" rows="6" placeholder="歌词将自动填入或手动粘贴..."></textarea>
-        </div>
-        <div class="field-group" id="hymn2-lyrics-group" style="display:none;">
-            <label>🎵 新编赞美2 歌词</label>
-            <textarea id="f-hymn2-lyrics" rows="6" placeholder="歌词将自动填入或手动粘贴..."></textarea>
-        </div>
-
-        <hr class="section-divider">
-
-        <div class="field-group">
-            <label>
-                🎤 牧师证道 — 第一讲
-                <button class="fetch-btn" onclick="fetchBible('sermon1')">🔍 自动获取经文</button>
-            </label>
-            <textarea id="f-sermon1" placeholder="例如：撒上16:1-13 要拯救世界的圣殿的开始"></textarea>
-        </div>
-
-        <div class="field-group">
-            <label>
-                🎤 牧师证道 — 第二讲
-                <button class="fetch-btn" onclick="fetchBible('sermon2')">🔍 自动获取经文</button>
-            </label>
-            <textarea id="f-sermon2" placeholder="例如：创4:16-16、5:1-32 血统"></textarea>
-        </div>
-
-        <hr class="section-divider">
-
-        <div class="field-group">
-            <label>💬 论坛分享内容</label>
-            <textarea id="f-forum" placeholder="论坛分享的主题或内容..."></textarea>
-        </div>
-
-        <div class="field-group">
-            <label>📝 777 宣告内容</label>
-            <textarea id="f-declaration" placeholder="777的祷告-绝对望楼&#10;777的话语-绝对旅程&#10;777的传道宣教-绝对里程碑" oninput="parse777AndShowButtons(this.value)"></textarea>
-        </div>
-
-        <hr class="section-divider">
-
-        <div class="field-row">
-            <div class="field-group">
-                <label>🖼️ 封面图片（第二页）</label>
-                <div style="color:#8b7a96;font-size:13px;margin-bottom:6px;">不上传则使用默认背景图</div>
-                <input type="file" id="img-cover" accept="image/*" style="display:none" onchange="onCoverImgSelected(this)">
-                <button class="fetch-btn" onclick="document.getElementById('img-cover').click()">📁 选择封面图片</button>
-                <div id="img-cover-preview" style="margin-top:8px;"></div>
-            </div>
-            <div class="field-group">
-                <label>🖼️ 结束页图片（最后一页）</label>
-                <div style="color:#8b7a96;font-size:13px;margin-bottom:6px;">不上传则使用默认背景图</div>
-                <input type="file" id="img-ending" accept="image/*" style="display:none" onchange="onEndingImgSelected(this)">
-                <button class="fetch-btn" onclick="document.getElementById('img-ending').click()">📁 选择结束页图片</button>
-                <div id="img-ending-preview" style="margin-top:8px;"></div>
-            </div>
-        </div>
-
-        <!-- ======= 自定义页面管理 ======= -->
-        <hr class="section-divider">
-        <div class="custom-page-section">
-            <div class="custom-page-header">
-                <span class="title">📄 自定义页面</span>
-                <span class="count" id="cp-count">当前共 0 页</span>
-            </div>
-            <button class="cp-add-btn" onclick="addCustomPage()" style="margin-bottom:12px;">➕ 添加自定义页面</button>
-            <div class="cp-list" id="cp-list"></div>
-            <div style="color:#8b7a96;font-size:13px;margin-top:8px;line-height:1.5;">
-                💡 添加自定义页面后，可拖拽编辑文字和图片；每页可选择插入位置（开篇/赞美/经文/信仰告白/证道/论坛/末尾）
-            </div>
-        </div>
-
+        <div class="field-card"><span class="field-label">日期</span><div class="field-value"><input type="text" id="f-date" placeholder="2026.6.7"></div></div>
+        <div class="field-card"><span class="field-label">上周</span><div class="field-value"><textarea id="f-lastweek" placeholder="上周的默想或回顾内容..." rows="2"></textarea></div></div>
+        <div class="field-card"><span class="field-label">赞美 1</span><div class="field-value"><input type="text" id="f-praise1" placeholder="91 二十四小时呼吁"><div class="field-badges" id="praise1-badges"></div></div></div>
+        <div class="field-card"><span class="field-label">赞美 2</span><div class="field-value"><input type="text" id="f-praise2" placeholder="118 Remnant"><div class="field-badges" id="praise2-badges"></div></div></div>
+        <div class="field-card"><span class="field-label">特颂</span><div class="field-value"><input type="text" id="f-special" placeholder="没有则留空"><div class="field-badges" id="special-badges"></div></div></div>
+        <div class="field-card"><span class="field-label">诗篇</span><div class="field-value"><input type="text" id="f-psalm" placeholder="23" style="width:80px;"><div class="field-badges" id="psalm-badges"></div></div></div>
+        <div class="field-card"><span class="field-label">新编 1</span><div class="field-value"><input type="text" id="f-hymn1" placeholder="54 心向主宝座歌"><div class="field-badges" id="hymn1-badges"></div></div></div>
+        <div class="field-card"><span class="field-label">新编 2</span><div class="field-value"><input type="text" id="f-hymn2" placeholder="258 耶稣领我歌"><div class="field-badges" id="hymn2-badges"></div></div></div>
+        <div class="field-card"><span class="field-label">证道 1</span><div class="field-value"><textarea id="f-sermon1" placeholder="赛66：12-24 赐给存留者的应许" rows="2"></textarea></div></div>
+        <div class="field-card"><span class="field-label">证道 2</span><div class="field-value"><textarea id="f-sermon2" placeholder="创3：15 永远的黑暗经济" rows="2"></textarea></div></div>
+        <div class="field-card"><span class="field-label">论坛</span><div class="field-value"><textarea id="f-forum" placeholder="论坛分享的主题..." rows="3"></textarea></div></div>
+        <div class="field-card"><span class="field-label">宣告</span><div class="field-value"><textarea id="f-declaration" placeholder="777的祷告..." rows="3"></textarea></div></div>
+        
+        <div class="btn-grid" style="margin-top: 8px;">
+            <button class="btn btn-primary" onclick="buildSlideshow()">生成幻灯片</button>
+            <button class="btn btn-outline" onclick="document.getElementById('edit-section').style.display='none';document.getElementById('input-section').scrollIntoView({behavior:'smooth'})">返回修改</button>
         </div>
     </div>
 </div>
 
-<!-- 右侧悬浮操作面板 -->
-<div class="side-panel" id="side-panel">
-    <button class="side-btn" id="btn-side-oneclick"
-        style="background:linear-gradient(135deg,rgba(245,215,110,0.35),rgba(192,132,252,0.35));border:1px solid rgba(245,215,110,0.6);color:#F5D76E;"
-        onclick="oneClickGenerate()">
-        <span class="side-icon">🚀</span>
-        <span class="side-label" id="oneclick-btn-label">一键生成</span>
-        <span class="side-hint" id="oneclick-btn-hint">全流程</span>
-    </button>
-    <button class="side-btn side-btn-parse" onclick="parseFromSidePanel()" id="btn-side-parse">
-        <span class="side-icon">📋</span>
-        <span class="side-label" id="parse-btn-label">一键匹配</span>
-        <span class="side-hint">解析+搜音频</span>
-    </button>
-    <button class="side-btn side-btn-save" onclick="manualSave()" id="btn-manual-save">
-        <span class="side-icon">💾</span>
-        <span class="side-label" id="save-btn-label">保存</span>
-        <span class="side-hint">防丢失</span>
-    </button>
-    <button class="side-btn side-btn-custom" onclick="quickCustomPage()" id="btn-side-custom">
-        <span class="side-icon">📄</span>
-        <span class="side-label">自定义</span>
-        <span class="side-hint">增删图文</span>
-    </button>
-    <button class="side-btn side-btn-generate" onclick="buildSlideshow()">
-        <span class="side-icon">✨</span>
-        <span class="side-label">生成幻灯片</span>
-        <span class="side-hint">预览播放</span>
-    </button>
-    <button class="side-btn side-btn-download" onclick="generatePPT()">
-        <span class="side-icon">📥</span>
-        <span class="side-label">下载PPT</span>
-        <span class="side-hint">保存文件</span>
-    </button>
-    <button class="side-btn side-btn-reset" onclick="resetAll()">
-        <span class="side-icon">🔄</span>
-        <span class="side-label">重新开始</span>
-        <span class="side-hint">清空内容</span>
-    </button>
-</div>
-
-
-<!-- Slideshow Overlay -->
-<div class="slideshow-overlay" id="slideshow-overlay">
-    <div class="slide-toc" id="slide-toc" onclick="event.stopPropagation()">
-        <div class="slide-toc-header">📑 目录导航</div>
-        <div class="slide-toc-list" id="slide-toc-list"></div>
-    </div>
-    <div class="slide-main">
-        <div class="slide-viewport" id="slide-viewport" onclick="nextSlide()">
-        <div class="slide-page" id="slide-page"></div>
-    </div>
-    <div class="slide-audio-bar" id="slide-audio-bar" onclick="event.stopPropagation()">
-        <button id="audio-btn-replay" onclick="replayAudio()">⏮ 重播</button>
-        <button id="audio-btn-play" onclick="toggleAudio()">▶ 播放</button>
-        <span class="audio-name" id="audio-name"></span>
-        <div class="audio-progress-wrap">
-            <input type="range" class="audio-progress" id="audio-progress" min="0" max="100" value="0"
-                oninput="seekAudio(this.value)" onclick="event.stopPropagation()">
-        </div>
-        <span class="audio-time" id="audio-time">0:00 / 0:00</span>
-    </div>
-    <div class="slide-nav">
-        <button onclick="event.stopPropagation();toggleToc()">📑 目录</button>
-        <button onclick="event.stopPropagation();prevSlide()">◀ 上一页</button>
-        <span class="slide-counter" id="slide-counter">1 / 1</span>
-        <button onclick="event.stopPropagation();nextSlide()">下一页 ▶</button>
-        <!-- 全屏 -->
-        <button onclick="event.stopPropagation();toggleFullscreen()" id="btn-fullscreen">⛶ 全屏</button>
-        <!-- 字号调节 -->
-        <div class="slide-adjust" onclick="event.stopPropagation()">
-            <label>字号</label>
-            <button onclick="adjustFont(-1)">－</button>
-            <span id="font-size-val">100%</span>
-            <button onclick="adjustFont(1)">＋</button>
-        </div>
-        <!-- 行距调节 -->
-        <div class="slide-adjust" onclick="event.stopPropagation()">
-            <label>行距</label>
-            <button onclick="adjustLine(-1)">－</button>
-            <span id="line-height-val">1.6</span>
-            <button onclick="adjustLine(1)">＋</button>
-        </div>
-        <button class="btn-close-slideshow" onclick="closeSlideshow()">✕ 关闭</button>
-    </div>
-    <!-- 板书输入栏（播放中编辑） -->
-    <div class="chalk-input-bar" id="chalk-input-bar" onclick="event.stopPropagation()">
-        <div class="chalk-input-row">
-            <button onclick="chalkAddText()">➕ 添加文本框</button>
-            <button onclick="chalkClear()">🗑 清空</button>
-            <button onclick="chalkAddPage()">📄 加页</button>
-            <button onclick="chalkSaveScreenshot()">📸 截图保存</button>
-        </div>
-        <div class="chalk-props-row" id="chalk-props-bar">
-            <button onclick="updateChalkProp('fontSize',Math.min(72,(getChalkSelectedProp('fontSize')||28)+4))" title="增大字号">A+</button>
-            <button onclick="updateChalkProp('fontSize',Math.max(12,(getChalkSelectedProp('fontSize')||28)-4))" title="减小字号">A-</button>
-            <select id="chk-color-select" onchange="updateChalkProp('color',this.value)">
-                <option value="#ffffff">白</option>
-                <option value="#F5D76E">金</option>
-                <option value="#ef4444">红</option>
-                <option value="#60a5fa">蓝</option>
-                <option value="#4ade80">绿</option>
-            </select>
-            <button onclick="updateChalkProp('bold',!getChalkSelectedProp('bold'))" style="font-weight:bold;" title="加粗">B</button>
-            <button onclick="deleteChalkElement()" style="color:#ef4444;" title="删除选中">✕ 删除</button>
-        </div>
-    </div>
-    </div><!-- end slide-main -->
-</div>
-
-<div class="loading-overlay" id="loading">
-    <div class="spinner"></div>
-    <div class="loading-text" id="loading-text">正在生成...</div>
-</div>
-
+<!-- Toast -->
 <div class="toast" id="toast"></div>
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading"><div class="spinner"></div><div class="loading-text" id="loading-text">正在处理...</div></div>
 
+<!-- Slideshow overlay -->
+<div class="slide-overlay" id="slideshow-overlay">
+    <div class="slide-stage"><div class="slide-page" id="slide-page"></div></div>
+    <div class="slide-audio-bar" id="slide-audio-bar">
+        <div class="audio-name" id="audio-name"></div>
+        <input type="range" class="audio-progress" id="audio-progress" min="0" max="100" value="0">
+        <div class="audio-time" id="audio-time">00:00 / 00:00</div>
+        <button class="slide-ctrl-btn" id="audio-btn-replay" onclick="replayAudio()">重播</button>
+        <button class="slide-ctrl-btn" id="audio-btn-play" onclick="toggleAudio()">播放</button>
+    </div>
+    <div class="slide-controls">
+        <button class="slide-ctrl-btn" onclick="toggleToc()">目录</button>
+        <button class="slide-ctrl-btn" onclick="prevSlide()">上一页</button>
+        <span class="slide-counter" id="slide-counter">1/1</span>
+        <button class="slide-ctrl-btn" onclick="nextSlide()">下一页</button>
+        <button class="slide-ctrl-btn" id="btn-fullscreen" onclick="toggleFullscreen()">全屏</button>
+        <div style="display:flex;align-items:center;gap:4px;margin-left:8px;">
+            <button class="slide-ctrl-btn" onclick="adjustFont(-1)" title="缩小">A-</button>
+            <span id="font-size-val" style="font-size:12px;color:var(--text-muted);min-width:32px;text-align:center;">100%</span>
+            <button class="slide-ctrl-btn" onclick="adjustFont(1)" title="放大">A+</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;">
+            <button class="slide-ctrl-btn" onclick="adjustLine(-1)">行距-</button>
+            <span id="line-height-val" style="font-size:12px;color:var(--text-muted);min-width:24px;text-align:center;">1.6</span>
+            <button class="slide-ctrl-btn" onclick="adjustLine(1)">行距+</button>
+        </div>
+        <button class="slide-ctrl-btn" id="btn-close-slideshow" onclick="closeSlideshow()" style="color:var(--error);">关闭</button>
+    </div>
+    <div class="slide-toc" id="slide-toc"><div id="slide-toc-list" style="display:flex;gap:4px;"></div></div>
+</div>
 
-<!-- Link Import Modal -->
+<!-- Side panel (desktop only) -->
+<div class="side-panel" id="side-panel">
+    <button class="side-btn" onclick="parseFromSidePanel()" id="btn-side-parse"><span id="parse-btn-label">一键匹配</span></button>
+    <button class="side-btn" onclick="buildSlideshow()">生成</button>
+    <button class="side-btn" onclick="saveContent()">保存</button>
+    <button class="side-btn" onclick="resetAll()">重置</button>
+</div>
 
 <script>
 // ============ Audio Management ============
@@ -4983,7 +3751,9 @@ function showPhotoLoading(s,m) {
     loadFixedSongAudioById('praise-final', '5b00f970605d87b30340f5467f65e853', '主啊，在我人生中');
 })();
 
+
 </script>
+
 
 <!-- ======= Custom Page Editor Overlay ======= -->
 <div class="cp-editor-overlay" id="cp-editor-overlay">
