@@ -2554,9 +2554,10 @@ async function fetchLyrics(type) {
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin"></span> 搜索中...'; }
 
     try {
-        // Extract song name (remove leading numbers like "76", "131", "277")
-        const songName = val.replace(/^\d+[\s.、,，]*/, '').trim();
-        const query = songName || val;
+        // Extract song name: strip "附" prefix + leading numbers (支持 "附40耶稣.惟有他" → "耶稣.惟有他")
+        const cleanVal = val.replace(/^附/, '');
+        const songName = cleanVal.replace(/^\d+[\s.、,，]*/, '').trim();
+        const query = songName || cleanVal;
 
         // Determine shiji_index based on type:
         // praise1/praise2 → 赞美耶稣诗集(附录) → shiji_index=0
@@ -2586,8 +2587,8 @@ async function fetchLyrics(type) {
             }
         }
 
-        // Also try matching by xuhao (song number)
-        const numMatch = val.match(/^\d+/);
+        // Also try matching by xuhao (song number) — use cleaned val for number
+        const numMatch = cleanVal.match(/^\d+/);
         if (matches.length === 0 && numMatch) {
             matches = candidateList.filter(s => String(s.xuhao) === numMatch[0]);
         }
@@ -2692,8 +2693,9 @@ async function fetchLyricsSilent(type) {
     const val = document.getElementById(inputId).value.trim();
     if (!val) return null;
 
-    const songName = val.replace(/^\d+[\s.、,，]*/, '').trim();
-    const query = songName || val;
+    const cleanVal = val.replace(/^附/, '');
+    const songName = cleanVal.replace(/^\d+[\s.、,，]*/, '').trim();
+    const query = songName || cleanVal;
 
     let shijiFilter = null;
     if (type === 'praise1' || type === 'praise2') shijiFilter = 0;
@@ -2724,7 +2726,7 @@ async function fetchLyricsSilent(type) {
                 if (matches.length > 0) break;
             }
         }
-        const numMatch = val.match(/^\d+/);
+        const numMatch = cleanVal.match(/^\d+/);
         if (matches.length === 0 && numMatch) {
             matches = candidateList.filter(s => String(s.xuhao) === numMatch[0]);
         }
