@@ -135,9 +135,9 @@ input, textarea, select, button { font-family: inherit; }
 .slide-ctrl-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 .slide-counter { font-size: 13px; color: var(--text-secondary); min-width: 48px; text-align: center; }
 .slide-toc { display: flex; gap: 4px; padding: 6px 16px; overflow-x: auto; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); }
-.slide-toc-item { flex-shrink: 0; width: 32px; height: 24px; border-radius: 4px; background: var(--border); border: none; cursor: pointer; font-size: 10px; color: var(--text-muted); transition: all 0.15s; }
-.slide-toc-item.current { background: var(--primary); color: #fff; width: 40px; }
-.slide-toc-item.section-start { border-left: 2px solid var(--amber); }
+.slide-toc-item { flex-shrink: 0; padding: 6px 14px; border-radius: 6px; background: var(--border); border: none; cursor: pointer; font-size: 13px; color: var(--text-secondary); transition: all 0.15s; text-align: left; white-space: nowrap; }
+.slide-toc-item:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+.slide-toc-item.current { background: var(--primary); color: #fff; }
 
 .slide-audio-bar { display: none; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); gap: 8px; }
 .slide-audio-bar.show { display: flex; }
@@ -248,7 +248,8 @@ input, textarea, select, button { font-family: inherit; }
             <span id="line-height-val" style="font-size:12px;color:var(--text-muted);min-width:24px;text-align:center;">1.6</span>
             <button class="slide-ctrl-btn" onclick="adjustLine(1)">行距+</button>
         </div>
-        <button class="slide-ctrl-btn" id="btn-close-slideshow" onclick="closeSlideshow()" style="color:var(--error);">关闭</button>
+        <button class="slide-ctrl-btn" onclick="closeSlideshow(true)" style="color:var(--amber);">返回编辑</button>
+        <button class="slide-ctrl-btn" id="btn-close-slideshow" onclick="closeSlideshow(false)" style="color:var(--error);">关闭</button>
     </div>
     <div class="slide-toc" id="slide-toc"><div id="slide-toc-list" style="display:flex;gap:4px;"></div></div>
 </div>
@@ -1810,7 +1811,7 @@ function buildToc() {
     const list = document.getElementById('slide-toc-list');
     const toc = slides._toc || [];
     list.innerHTML = toc.map((item, i) =>
-        `<button class="slide-toc-item" data-index="${item.slideIndex}" onclick="goToSection(${i})"><span class="toc-num">${i + 1}</span>${esc(item.name)}</button>`
+        '<button class="slide-toc-item" onclick="goToSection(' + i + ')">' + (i + 1) + '. ' + esc(item.name) + '</button>'
     ).join('');
 }
 
@@ -1849,7 +1850,7 @@ function updateTocHighlight() {
 
 function nextSlide() { if (currentSlide < slides.length - 1) { currentSlide++; renderSlide(); } }
 function prevSlide() { if (currentSlide > 0) { currentSlide--; renderSlide(); } }
-function closeSlideshow() {
+function closeSlideshow(backToEdit) {
     document.getElementById('slideshow-overlay').classList.remove('show');
     const toc = document.getElementById('slide-toc'); if (toc) toc.classList.remove('show');
     document.getElementById('side-panel').style.display = '';
@@ -1859,6 +1860,10 @@ function closeSlideshow() {
     chkDragState = null;
     tocVisible = false;
     stopAudio();
+    if (backToEdit) {
+        document.getElementById('edit-section').style.display = 'block';
+        document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 // ============ 板书操作（播放中交互编辑） ============
