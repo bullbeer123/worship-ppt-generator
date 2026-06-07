@@ -207,8 +207,8 @@ input, textarea, select, button { font-family: inherit; }
         <div class="field-card"><span class="field-label">新编 2</span><div class="field-value"><input type="text" id="f-hymn2" placeholder="258 耶稣领我歌"><div class="field-badges" id="hymn2-badges"></div></div></div>
         <div class="field-card"><span class="field-label">证道 1</span><div class="field-value"><textarea id="f-sermon1" placeholder="赛66：12-24 赐给存留者的应许" rows="2"></textarea></div></div>
         <div class="field-card"><span class="field-label">证道 2</span><div class="field-value"><textarea id="f-sermon2" placeholder="创3：15 永远的黑暗经济" rows="2"></textarea></div></div>
-        <div class="field-card"><span class="field-label">论坛</span><div class="field-value"><textarea id="f-forum" placeholder="论坛分享的主题..." rows="3"></textarea></div></div>
-        <div class="field-card"><span class="field-label">宣告</span><div class="field-value"><textarea id="f-declaration" placeholder="777的祷告..." rows="3"></textarea></div></div>
+        <div class="field-card"><span class="field-label">论坛要点</span><div class="field-value"><textarea id="f-forum" placeholder="论坛分享的主题..." rows="3"></textarea></div></div>
+        <div class="field-card"><span class="field-label">祷告</span><div class="field-value"><textarea id="f-declaration" placeholder="777的祷告..." rows="3"></textarea></div></div>
         
         <div class="btn-grid" style="margin-top: 8px;">
             <button class="btn btn-primary" onclick="buildSlideshow()">生成幻灯片</button>
@@ -959,6 +959,7 @@ async function parseText() {
 
     // 8. 纯数字的赞美/新编字段自动补全为"编号 歌名"
     await autoCompletePureNumbers();
+    checkPraiseNames();
 }
 
 // AI解析结果填入表单
@@ -990,6 +991,7 @@ function fillAIParseResult(result) {
     if (result.declaration) document.getElementById('f-declaration').value = result.declaration;
     document.getElementById('edit-section').style.display = 'block';
     document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
+    checkPraiseNames();
 }
 
 // Only fill in song names for fields that have a pure number (e.g. "46" → "46 歌名")
@@ -1290,13 +1292,14 @@ function _applyAudioToField(type, audioUrl, songTitle) {
     }
 
     audioFiles[type] = { url: ensureHttps(audioUrl), name: songTitle + '.mp3', isRemote: true };
+    setFieldBadge(type, 'ok', '已就绪');
     const nameEl = document.getElementById('audio-' + type + '-name');
     if (nameEl) {
         nameEl.textContent = '🎵 ' + songTitle + ' ⏳0%…';
         prefetchAudioInBackground(audioUrl, (state, pct) => {
-            if (state === 'downloading') nameEl.textContent = '🎵 ' + songTitle + ' ⏳' + (pct > 0 ? pct + '%…' : '下载中…');
-            else if (state === 'cached') nameEl.textContent = '🎵 ' + songTitle + ' ✅已缓存';
-            else if (state === 'failed') nameEl.textContent = '🎵 ' + songTitle + ' ⚠️缓存失败';
+            if (state === 'downloading') { nameEl.textContent = '🎵 ' + songTitle + ' ⏳' + (pct > 0 ? pct + '%…' : '下载中…'); setFieldBadge(type, 'warn', pct + '%'); }
+            else if (state === 'cached') { nameEl.textContent = '🎵 ' + songTitle + ' ✅已缓存'; setFieldBadge(type, 'ok', '已缓存'); }
+            else if (state === 'failed') { nameEl.textContent = '🎵 ' + songTitle + ' ⚠️缓存失败'; setFieldBadge(type, 'err', '缓存失败'); }
         });
     }
 }
@@ -1449,7 +1452,7 @@ function buildSlides(data) {
         const name = data[nameKey];
         const lyrics = data[lyricsKey];
         if (!name) return;
-        slides.push({ type: 'hymn', label: label, text: name, section: label });
+        slides.push({ type: 'hymn', label: label, text: name, section: label, audioKey: nameKey });
         tocSections.push({ name: label, slideIndex: slides.length - 1 });
         if (lyrics) {
             const lines = lyrics.split('\n').filter(l => l.trim());
@@ -1484,7 +1487,7 @@ function buildSlides(data) {
     // 5. 新编赞美第1首 — title + lyrics pages
     if (data.hymn1) {
         const h1Label = '新编赞美1';
-        slides.push({ type: 'hymn', label: '赞美', text: '新编赞美 ' + data.hymn1, section: h1Label });
+        slides.push({ type: 'hymn', label: '赞美', text: '新编赞美 ' + data.hymn1, section: h1Label, audioKey: 'hymn1' });
         tocSections.push({ name: h1Label, slideIndex: slides.length - 1 });
         if (data.hymn1Lyrics) {
             const lines = data.hymn1Lyrics.split('\n').filter(l => l.trim());
@@ -1506,7 +1509,7 @@ function buildSlides(data) {
     // 7. 新编赞美第2首 — title + lyrics pages
     if (data.hymn2) {
         const h2Label = '新编赞美2';
-        slides.push({ type: 'hymn', label: '请坐下', text: '新编赞美 ' + data.hymn2, section: h2Label });
+        slides.push({ type: 'hymn', label: '请坐下', text: '新编赞美 ' + data.hymn2, section: h2Label, audioKey: 'hymn2' });
         tocSections.push({ name: h2Label, slideIndex: slides.length - 1 });
         if (data.hymn2Lyrics) {
             const lines = data.hymn2Lyrics.split('\n').filter(l => l.trim());
@@ -1518,7 +1521,7 @@ function buildSlides(data) {
 
     // 8. 特颂（特殊赞美，可选）
     if (data.special) {
-        slides.push({ type: 'hymn', label: '特颂', text: data.special, section: '特颂' });
+        slides.push({ type: 'hymn', label: '特颂', text: data.special, section: '特颂', audioKey: 'special' });
         tocSections.push({ name: '特颂', slideIndex: slides.length - 1 });
         if (data.specialLyrics) {
             const lines = data.specialLyrics.split('\n').filter(l => l.trim());
@@ -1757,7 +1760,7 @@ function renderSlide() {
                 target.classList.remove('chk-editing');
             };
             // 显示板书输入栏
-            document.getElementById('chalk-input-bar').style.display = 'flex';
+            const cb = document.getElementById('chalk-input-bar'); if (cb) cb.style.display = 'flex';
             break;
         case 'simple':
             html = `<div class="s-title">${esc(s.title)}</div>`;
@@ -1848,10 +1851,10 @@ function nextSlide() { if (currentSlide < slides.length - 1) { currentSlide++; r
 function prevSlide() { if (currentSlide > 0) { currentSlide--; renderSlide(); } }
 function closeSlideshow() {
     document.getElementById('slideshow-overlay').classList.remove('show');
-    document.getElementById('slide-toc').classList.remove('show');
+    const toc = document.getElementById('slide-toc'); if (toc) toc.classList.remove('show');
     document.getElementById('side-panel').style.display = '';
-    document.getElementById('chalk-input-bar').style.display = 'none';
-    document.getElementById('chalk-props-bar').style.display = 'none';
+    const cb = document.getElementById('chalk-input-bar'); if (cb) cb.style.display = 'none';
+    const cp = document.getElementById('chalk-props-bar'); if (cp) cp.style.display = 'none';
     chkSelectedId = null;
     chkDragState = null;
     tocVisible = false;
@@ -3573,6 +3576,27 @@ function showPhotoLoading(s,m) {
     const o = document.getElementById('loading'), t = document.getElementById('loading-text');
     if (s) { if (t&&m) t.textContent=m; o.classList.add('show'); }
     else { o.classList.remove('show'); if (t) t.textContent='正在生成...'; }
+}
+
+// 更新字段状态徽章 (type: praise1/praise2/hymn1/hymn2, state: ok/warn/err, text)
+function setFieldBadge(type, state, text) {
+    const el = document.getElementById(type + '-badges');
+    if (!el) return;
+    const cls = state === 'ok' ? 'badge-ok' : state === 'warn' ? 'badge-warn' : 'badge-err';
+    el.innerHTML = '<span class="badge ' + cls + '">' + text + '</span>';
+}
+
+// 检查赞美名称是否只有数字（提示用户补充名称）
+function checkPraiseNames() {
+    ['praise1','praise2','special','hymn1','hymn2'].forEach(type => {
+        const val = document.getElementById('f-' + type).value.trim();
+        if (!val) return;
+        // 去掉"附"前缀和数字，剩余为空说明只有编号
+        const clean = val.replace(/^附/, '').replace(/^\d+[\s.、,，]*/, '').trim();
+        if (!clean) {
+            setFieldBadge(type, 'warn', '需补全歌名');
+        }
+    });
 }
 // ============ Page Init: 提前预加载固定歌曲音频 ============
 // 在页面加载时就开始后台下载欢迎赞美(24)和结束赞美(134)的音频
