@@ -308,8 +308,8 @@ const CORS_PROXY_URL = 'https://api.codetabs.com/v1/proxy?quest=';
 // ★ 高频音频本地映射表（GitHub Pages同源，无CORS问题）
 // 通过 download-audio skill 下载后添加到列表，后续持续扩充
 const LOCAL_AUDIO_MAP = {
-    "你原来是宝贵的": "audio/ni-yuanshi-baogui-de.mp3",
-    "主啊，在我人生中": "audio/zhu-a-zai-woren-sheng-zhong.mp3"
+    "你原来是宝贵的": "audio/24-ni-yuanshi-baogui.mp3",
+    "主啊，在我人生中": "audio/134-zhu-zai-wo-rensheng.mp3"
 };
 
 // ★ 检查歌曲是否在本地映射中
@@ -1160,14 +1160,29 @@ function saveSongUrlToDict(songTitle, audioUrl, songName) {
 function lookupSongUrlFromDict(query) {
     const dict = getSongUrlDict();
     // 完整匹配优先
-    if (dict[query]) return dict[query];
-    // 模糊匹配：字典中title包含query，或query包含title
-    const q = query.toLowerCase();
-    for (const [title, info] of Object.entries(dict)) {
-        const t = title.toLowerCase();
-        if (t.includes(q) || q.includes(t)) return info;
+    let info = dict[query];
+    if (!info) {
+        // 模糊匹配：字典中title包含query，或query包含title
+        const q = query.toLowerCase();
+        for (const [title, candidate] of Object.entries(dict)) {
+            const t = title.toLowerCase();
+            if (t.includes(q) || q.includes(t)) { info = candidate; break; }
+        }
     }
-    return null;
+    // ★ 检测旧格式 hash URL（oss.top237.top 文件已重组，hash 格式已失效）
+    //    旧格式: assets/a1b2c3...（纯hash无扩展名）→ 返回null强制走API获取最新URL
+    //    新格式: assets/歌名.mp3（中文文件名）→ 正常使用
+    if (info && info.url) {
+        const pathOnly = info.url.replace(/^https?:\/\/[^\/]+\//, '');
+        if (/^assets\/[a-f0-9]{20,}$/.test(pathOnly)) {
+            console.warn('🗑️ 字典URL已过期（旧hash格式），清除并跳过缓存:', info.url.substring(0, 60));
+            // 清除过期条目
+            const titleKey = Object.keys(dict).find(k => dict[k] === info);
+            if (titleKey) { delete dict[titleKey]; localStorage.setItem(SONG_URL_DICT_KEY, JSON.stringify(dict)); }
+            return null;
+        }
+    }
+    return info || null;
 }
 
 async function getSongList() {
