@@ -119,8 +119,8 @@ input, textarea, select, button { font-family: inherit; }
 
 .slide-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0f0720; z-index: 300; flex-direction: column; }
 .slide-overlay.show { display: flex; }
-.slide-stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; }
-.slide-page { width: min(100vw, calc(100vh * 16/9)); height: min(100vh, calc(100vw * 9/16)); background: #5B1A6E; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 3% 5%; overflow: hidden; border-radius: 4px; --fs-scale: 1; --lh: 1.6; }
+.slide-stage { flex: 1; min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.slide-page { width: min(100vw, calc(100dvh * 16/9)); height: min(100dvh, calc(100vw * 9/16)); background: #5B1A6E; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 3% 5%; overflow: hidden; border-radius: 4px; --fs-scale: 1; --lh: 1.6; }
 .slide-page .s-title { font-size: calc(clamp(24px,5vw,96px) * var(--fs-scale)); color: #fff; font-weight: 700; text-align: center; line-height: var(--lh); }
 .slide-page .s-subtitle { font-size: calc(clamp(18px,3.5vw,72px) * var(--fs-scale)); color: #F5D76E; text-align: center; margin-top: 6px; line-height: var(--lh); }
 .slide-page .s-body { font-size: calc(clamp(18px,4vw,80px) * var(--fs-scale)); color: #fff; text-align: center; line-height: var(--lh); margin-top: 14px; max-width: 95%; word-break: break-word; }
@@ -2230,7 +2230,11 @@ async function updateAudioForSlide() {
             const rawUrl = info.url;
             const isLocalBlob = rawUrl && rawUrl.startsWith('blob:');
             const isLocalFile = info.isLocalFile === true;
-            const audioUrl = (isLocalBlob || isLocalFile) ? rawUrl : ensureHttps(rawUrl);
+            let audioUrl = (isLocalBlob || isLocalFile) ? rawUrl : ensureHttps(rawUrl);
+            // URL-encode 非 ASCII 字符（中文等），避免 Audio 元素 "no supported sources" 错误
+            if (audioUrl && !isLocalBlob && !isLocalFile) {
+                audioUrl = encodeURI(audioUrl);
+            }
             const audio = new Audio();
             currentAudio = { key: s.audioKey, audio: audio, name: info.name };
 
@@ -2253,7 +2257,8 @@ async function updateAudioForSlide() {
                     btn.disabled = false;
                     btn.textContent = '▶ 播放';
                 });
-                audio.addEventListener('error', () => {
+                audio.addEventListener('error', (e) => {
+                    console.warn('音频加载失败:', audio.src ? audio.src.substring(0, 80) : '(无源)', e);
                     btn.disabled = false;
                     btn.textContent = '⚠️ 播放失败';
                 });
@@ -2297,11 +2302,21 @@ async function updateAudioForSlide() {
 
 function toggleAudio() {
     if (!currentAudio) return;
-    if (currentAudio.audio.paused) {
-        currentAudio.audio.play();
+    // 检查音频是否有有效的源（避免 "no supported sources" 错误）
+    const a = currentAudio.audio;
+    if (!a.src || a.src === 'undefined' || a.src === 'null' || a.src === window.location.href) {
+        showToast('⚠️ 音频尚未加载，请稍候再试');
+        return;
+    }
+    if (a.paused) {
+        a.play().catch(e => {
+            console.warn('音频播放失败:', e.message);
+            showToast('⚠️ 播放失败，请尝试重新生成');
+            document.getElementById('audio-btn-play').textContent = '▶ 播放';
+        });
         document.getElementById('audio-btn-play').textContent = '⏸ 暂停';
     } else {
-        currentAudio.audio.pause();
+        a.pause();
         document.getElementById('audio-btn-play').textContent = '▶ 播放';
     }
 }
