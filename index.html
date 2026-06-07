@@ -152,6 +152,8 @@ input, textarea, select, button { font-family: inherit; }
 .side-btn { padding: 10px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); font-size: 12px; cursor: pointer; writing-mode: horizontal-tb; text-align: center; transition: all 0.15s; min-width: 52px; }
 .side-btn:hover { border-color: var(--border-active); color: var(--text); }
 .side-btn.done { border-color: var(--success); color: var(--success); }
+.side-label { font-size: 13px; font-weight: 600; display: block; }
+.side-hint { font-size: 10px; color: var(--text-muted); display: block; margin-top: 1px; }
 
 .text-editor textarea { min-height: 80px; }
 .text-placeholder { color: var(--text-muted); font-size: 14px; text-align: center; padding: 20px; }
@@ -253,11 +255,25 @@ input, textarea, select, button { font-family: inherit; }
 
 <!-- Side panel (desktop only) -->
 <div class="side-panel" id="side-panel">
-    <button class="side-btn" onclick="parseFromSidePanel()" id="btn-side-parse"><span id="parse-btn-label">一键匹配</span></button>
+    <button class="side-btn" onclick="parseFromSidePanel()" id="btn-side-parse">
+        <span class="side-label" id="parse-btn-label">一键匹配</span>
+        <span class="side-hint">解析+搜音频</span>
+    </button>
     <button class="side-btn" onclick="buildSlideshow()">生成</button>
-    <button class="side-btn" onclick="saveContent()">保存</button>
+    <button class="side-btn side-btn-save" onclick="saveContent()">
+        <span class="side-label">保存</span>
+        <span class="side-hint">防丢失</span>
+    </button>
     <button class="side-btn" onclick="resetAll()">重置</button>
 </div>
+
+<!-- V1 compatibility: hidden form elements required by JS -->
+<div id="psalm-content-group" style="display:none;"><textarea id="f-psalm-content"></textarea></div>
+<div id="praise1-lyrics-group" style="display:none;"><textarea id="f-praise1-lyrics"></textarea></div>
+<div id="praise2-lyrics-group" style="display:none;"><textarea id="f-praise2-lyrics"></textarea></div>
+<div id="special-lyrics-group" style="display:none;"><textarea id="f-special-lyrics"></textarea></div>
+<div id="hymn1-lyrics-group" style="display:none;"><textarea id="f-hymn1-lyrics"></textarea></div>
+<div id="hymn2-lyrics-group" style="display:none;"><textarea id="f-hymn2-lyrics"></textarea></div>
 
 <script>
 // ============ Audio Management ============
