@@ -1368,21 +1368,14 @@ function _applyAudioToField(type, audioUrl, songTitle, songMeta) {
     let url = ensureHttps(audioUrl);
     let fallbackUrl = null;
 
-    // ★ 检测旧格式 hash URL（OSS 重组后纯 hash 路径已失效 404）
-    //    如果 API 返回 hash 格式，用中文歌名格式作为替代
-    const pathOnly = url.replace(/^https?:\/\/[^\/]+\//, '');
-    const isHashUrl = /^assets\/[a-f0-9]+\.mp3$/.test(pathOnly) || /^assets\/[a-f0-9]{20,}$/.test(pathOnly);
-    if (isHashUrl && songMeta) {
+    // ★ 构造中文歌名格式的回退 URL（OSS 迁移不完全，部分歌曲仅 hash/中文 其一可用）
+    if (songMeta && songMeta.xuhao) {
         const collection = (songMeta.shiji_index === 2) ? '新编赞美诗' : '赞美耶稣诗集';
-        const xuhao = songMeta.xuhao || '';
-        const rawPath = `assets/${collection}${xuhao}首：${songTitle} [中质量].mp3`;
+        const rawPath = `assets/${collection}${songMeta.xuhao}首：${songTitle} [中质量].mp3`;
         fallbackUrl = 'https://oss.top237.top/' + rawPath;
-        // 回退 URL 作为主 URL（编码由 updateAudioForSlide 统一处理）
-        url = fallbackUrl;
-        console.log('🔄 API返回hash URL，改用中文名格式:', url.substring(0, 80));
     }
 
-    audioFiles[type] = { url: url, name: songTitle + '.mp3', isRemote: true };
+    audioFiles[type] = { url: url, name: songTitle + '.mp3', isRemote: true, fallbackUrl: fallbackUrl };
     setFieldBadge(type, 'ok', '已就绪');
     const nameEl = document.getElementById('audio-' + type + '-name');
     if (nameEl) {
@@ -2358,6 +2351,14 @@ async function updateAudioForSlide() {
                 });
                 audio.addEventListener('error', (e) => {
                     console.warn('音频加载失败:', audio.src ? audio.src.substring(0, 80) : '(无源)', e);
+                    // 尝试回退 URL（主 URL 和回退 URL 格式不同，OSS 迁移不完整）
+                    const fallback = info.fallbackUrl;
+                    if (fallback && audio.src !== encodeURI(fallback) && !audio._triedFallback) {
+                        audio._triedFallback = true;
+                        console.log('🔄 尝试回退URL:', fallback.substring(0, 80));
+                        audio.src = encodeURI(fallback);
+                        return;
+                    }
                     btn.disabled = false;
                     btn.textContent = '⚠️ 播放失败';
                 });
