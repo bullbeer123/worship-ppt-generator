@@ -225,6 +225,13 @@ input, textarea, select, button { font-family: inherit; }
     </div>
 </div>
 
+<!-- Hidden file inputs for local audio -->
+<input type="file" id="audio-praise1" accept="audio/*" style="display:none" onchange="onAudioSelected('praise1', this)">
+<input type="file" id="audio-praise2" accept="audio/*" style="display:none" onchange="onAudioSelected('praise2', this)">
+<input type="file" id="audio-special" accept="audio/*" style="display:none" onchange="onAudioSelected('special', this)">
+<input type="file" id="audio-hymn1" accept="audio/*" style="display:none" onchange="onAudioSelected('hymn1', this)">
+<input type="file" id="audio-hymn2" accept="audio/*" style="display:none" onchange="onAudioSelected('hymn2', this)">
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 <!-- Loading overlay -->
