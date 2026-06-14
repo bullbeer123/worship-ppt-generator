@@ -466,7 +466,52 @@ function pickAudio(key) {
 }
 
 // ============ 解析页音频试听 ============
-let previewAudio = null; // { type, audio, fallbackTried }
+let previewAudio = null; // { type, audio, url, fallbackTried }
+
+function _startPreview(type, srcUrl) {
+    stopPreview();
+    const audio = new Audio();
+    previewAudio = { type, audio, url: srcUrl, fallbackTried: false };
+
+    const btn = document.getElementById('btn-play-' + type);
+    if (btn) btn.textContent = '⏳...';
+
+    const info = audioFiles[type];
+
+    audio.addEventListener('canplay', () => {
+        updatePreviewBtn(type, '▶ 试听');
+    });
+    audio.addEventListener('ended', () => {
+        updatePreviewBtn(type, '▶ 试听');
+    });
+    audio.addEventListener('error', () => {
+        if (!previewAudio || previewAudio.type !== type) return;
+        // 尝试回退 URL
+        if (!previewAudio.fallbackTried && info && info.fallbackUrl) {
+            previewAudio.fallbackTried = true;
+            const fb = info.isLocalFile ? info.fallbackUrl : encodeURI(ensureHttps(info.fallbackUrl));
+            if (fb && fb !== srcUrl) {
+                console.log('🔄 试听回退:', fb.substring(0, 60));
+                audio.src = fb;
+                return;
+            }
+        }
+        updatePreviewBtn(type, '⚠️ 失败');
+        showToast('⚠️ 音频加载失败，请下载或本地导入', true);
+    });
+
+    audio.src = srcUrl;
+    audio.play().then(() => {
+        updatePreviewBtn(type, '⏸ 暂停');
+    }).catch(e => {
+        // play() 可能因为还没加载完而失败，canplay 之后重试
+        if (e.name === 'NotSupportedError') {
+            // 让 error 事件处理
+        } else {
+            console.warn('预览播放:', e.message);
+        }
+    });
+}
 
 function togglePreview(type) {
     const info = audioFiles[type];
@@ -488,38 +533,8 @@ function togglePreview(type) {
     stopPreview();
 
     const isLocal = info.isLocalFile || (info.url && info.url.startsWith('blob:'));
-    let url = isLocal ? info.url : encodeURI(ensureHttps(info.url));
-
-    const audio = new Audio(url);
-    previewAudio = { type, audio, fallbackTried: false };
-
-    const btn = document.getElementById('btn-play-' + type);
-    if (btn) btn.textContent = '⏳...';
-
-    audio.addEventListener('canplay', () => {
-        updatePreviewBtn(type, '▶ 试听');
-    });
-    audio.addEventListener('error', () => {
-        // 尝试回退 URL
-        if (!previewAudio || previewAudio.type !== type) return;
-        if (!previewAudio.fallbackTried && info.fallbackUrl) {
-            previewAudio.fallbackTried = true;
-            console.log('🔄 试听回退:', info.fallbackUrl.substring(0, 60));
-            audio.src = encodeURI(info.fallbackUrl);
-            return;
-        }
-        updatePreviewBtn(type, '⚠️ 失败');
-        showToast('⚠️ 音频加载失败，请尝试下载或本地导入', true);
-    });
-    audio.addEventListener('ended', () => {
-        updatePreviewBtn(type, '▶ 试听');
-    });
-    audio.play().then(() => {
-        updatePreviewBtn(type, '⏸ 暂停');
-    }).catch(e => {
-        console.warn('预览播放失败:', e.message);
-        updatePreviewBtn(type, '▶ 试听');
-    });
+    const url = isLocal ? info.url : encodeURI(ensureHttps(info.url));
+    _startPreview(type, url);
 }
 
 function stopPreview() {
