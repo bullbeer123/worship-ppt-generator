@@ -492,11 +492,14 @@ function onAudioSelected(key, input) {
     const file = input.files[0];
     if (!file) return;
     // Revoke old URL if exists
-    if (audioFiles[key] && audioFiles[key].url) {
+    if (audioFiles[key] && audioFiles[key].url && audioFiles[key].url.startsWith('blob:')) {
         URL.revokeObjectURL(audioFiles[key].url);
     }
-    audioFiles[key] = { url: URL.createObjectURL(file), name: file.name };
-    document.getElementById('audio-' + key + '-name').textContent = '📎 ' + file.name;
+    audioFiles[key] = { url: URL.createObjectURL(file), name: file.name, isRemote: false, isLocalFile: true };
+    // 更新按钮文字和 badge 状态
+    const btn = document.getElementById('btn-audio-' + key);
+    if (btn) btn.textContent = '📎 ' + file.name.substring(0, 12) + (file.name.length > 12 ? '…' : '');
+    setFieldBadge(key, 'ok', '本地音频');
     showToast('✅ 音频已选择：' + file.name);
 }
 
