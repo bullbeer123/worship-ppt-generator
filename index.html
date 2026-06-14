@@ -1366,8 +1366,8 @@ function _applyAudioToField(type, audioUrl, songTitle, songMeta) {
         const collection = (songMeta.shiji_index === 2) ? '新编赞美诗' : '赞美耶稣诗集';
         const xuhao = songMeta.xuhao || '';
         const rawPath = `assets/${collection}${xuhao}首：${songTitle} [中质量].mp3`;
-        fallbackUrl = 'https://oss.top237.top/' + encodeURI(rawPath);
-        // 回退 URL 作为主 URL
+        fallbackUrl = 'https://oss.top237.top/' + rawPath;
+        // 回退 URL 作为主 URL（编码由 updateAudioForSlide 统一处理）
         url = fallbackUrl;
         console.log('🔄 API返回hash URL，改用中文名格式:', url.substring(0, 80));
     }
