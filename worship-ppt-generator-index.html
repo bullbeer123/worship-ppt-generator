@@ -162,6 +162,8 @@ input, textarea, select, button { font-family: inherit; }
 
 .btn-ghost-sm { background: transparent; color: var(--text-muted); padding: 6px 12px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; }
 .btn-ghost-sm:hover { border-color: var(--border-active); color: var(--text); }
+.btn-play-preview { color: var(--success); border-color: var(--success-bg); }
+.btn-play-preview:hover { background: var(--success-bg); color: var(--success); }
 
 .text-editor textarea { min-height: 80px; }
 .text-placeholder { color: var(--text-muted); font-size: 14px; text-align: center; padding: 20px; }
@@ -207,12 +209,12 @@ input, textarea, select, button { font-family: inherit; }
         </div>
         <div class="field-card"><span class="field-label">日期</span><div class="field-value"><input type="text" id="f-date" placeholder="2026.6.7"></div></div>
         <div class="field-card"><span class="field-label">上周</span><div class="field-value"><textarea id="f-lastweek" placeholder="上周的默想或回顾内容..." rows="2"></textarea></div></div>
-        <div class="field-card"><span class="field-label">赞美 1</span><div class="field-value"><input type="text" id="f-praise1" placeholder="91 二十四小时呼吁"><textarea id="f-praise1-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="praise1-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('praise1')" style="display:none;" id="btn-fetch-praise1">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('praise1')" style="display:none;" id="btn-audio-praise1">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('praise1')" style="display:none;" id="btn-dl-praise1">⬇ 下载</button></div></div></div>
-        <div class="field-card"><span class="field-label">赞美 2</span><div class="field-value"><input type="text" id="f-praise2" placeholder="118 Remnant"><textarea id="f-praise2-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="praise2-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('praise2')" style="display:none;" id="btn-fetch-praise2">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('praise2')" style="display:none;" id="btn-audio-praise2">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('praise2')" style="display:none;" id="btn-dl-praise2">⬇ 下载</button></div></div></div>
-        <div class="field-card"><span class="field-label">特颂</span><div class="field-value"><input type="text" id="f-special" placeholder="没有则留空"><textarea id="f-special-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="special-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('special')" style="display:none;" id="btn-fetch-special">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('special')" style="display:none;" id="btn-audio-special">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('special')" style="display:none;" id="btn-dl-special">⬇ 下载</button></div></div></div>
+        <div class="field-card"><span class="field-label">赞美 1</span><div class="field-value"><input type="text" id="f-praise1" placeholder="91 二十四小时呼吁"><textarea id="f-praise1-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="praise1-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('praise1')" style="display:none;" id="btn-fetch-praise1">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('praise1')" style="display:none;" id="btn-audio-praise1">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('praise1')" style="display:none;" id="btn-dl-praise1">⬇ 下载</button><button class="btn-ghost-sm btn-play-preview" onclick="togglePreview('praise1')" style="display:none;" id="btn-play-praise1">▶ 试听</button></div></div></div>
+        <div class="field-card"><span class="field-label">赞美 2</span><div class="field-value"><input type="text" id="f-praise2" placeholder="118 Remnant"><textarea id="f-praise2-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="praise2-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('praise2')" style="display:none;" id="btn-fetch-praise2">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('praise2')" style="display:none;" id="btn-audio-praise2">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('praise2')" style="display:none;" id="btn-dl-praise2">⬇ 下载</button><button class="btn-ghost-sm btn-play-preview" onclick="togglePreview('praise2')" style="display:none;" id="btn-play-praise2">▶ 试听</button></div></div></div>
+        <div class="field-card"><span class="field-label">特颂</span><div class="field-value"><input type="text" id="f-special" placeholder="没有则留空"><textarea id="f-special-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="special-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('special')" style="display:none;" id="btn-fetch-special">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('special')" style="display:none;" id="btn-audio-special">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('special')" style="display:none;" id="btn-dl-special">⬇ 下载</button><button class="btn-ghost-sm btn-play-preview" onclick="togglePreview('special')" style="display:none;" id="btn-play-special">▶ 试听</button></div></div></div>
         <div class="field-card"><span class="field-label">诗篇</span><div class="field-value"><input type="text" id="f-psalm" placeholder="23" style="width:80px;"><div class="field-badges" id="psalm-badges"></div></div></div>
-        <div class="field-card"><span class="field-label">新编 1</span><div class="field-value"><input type="text" id="f-hymn1" placeholder="54 心向主宝座歌"><textarea id="f-hymn1-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="hymn1-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('hymn1')" style="display:none;" id="btn-fetch-hymn1">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('hymn1')" style="display:none;" id="btn-audio-hymn1">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('hymn1')" style="display:none;" id="btn-dl-hymn1">⬇ 下载</button></div></div></div>
-        <div class="field-card"><span class="field-label">新编 2</span><div class="field-value"><input type="text" id="f-hymn2" placeholder="258 耶稣领我歌"><textarea id="f-hymn2-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="hymn2-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('hymn2')" style="display:none;" id="btn-fetch-hymn2">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('hymn2')" style="display:none;" id="btn-audio-hymn2">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('hymn2')" style="display:none;" id="btn-dl-hymn2">⬇ 下载</button></div></div></div>
+        <div class="field-card"><span class="field-label">新编 1</span><div class="field-value"><input type="text" id="f-hymn1" placeholder="54 心向主宝座歌"><textarea id="f-hymn1-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="hymn1-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('hymn1')" style="display:none;" id="btn-fetch-hymn1">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('hymn1')" style="display:none;" id="btn-audio-hymn1">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('hymn1')" style="display:none;" id="btn-dl-hymn1">⬇ 下载</button><button class="btn-ghost-sm btn-play-preview" onclick="togglePreview('hymn1')" style="display:none;" id="btn-play-hymn1">▶ 试听</button></div></div></div>
+        <div class="field-card"><span class="field-label">新编 2</span><div class="field-value"><input type="text" id="f-hymn2" placeholder="258 耶稣领我歌"><textarea id="f-hymn2-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="hymn2-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('hymn2')" style="display:none;" id="btn-fetch-hymn2">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('hymn2')" style="display:none;" id="btn-audio-hymn2">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('hymn2')" style="display:none;" id="btn-dl-hymn2">⬇ 下载</button><button class="btn-ghost-sm btn-play-preview" onclick="togglePreview('hymn2')" style="display:none;" id="btn-play-hymn2">▶ 试听</button></div></div></div>
         <div class="field-card"><span class="field-label">证道 1</span><div class="field-value"><textarea id="f-sermon1" placeholder="赛66：12-24 赐给存留者的应许" rows="2"></textarea></div></div>
         <div class="field-card"><span class="field-label">证道 2</span><div class="field-value"><textarea id="f-sermon2" placeholder="创3：15 永远的黑暗经济" rows="2"></textarea></div></div>
         <div class="field-card"><span class="field-label">论坛要点</span><div class="field-value"><textarea id="f-forum" placeholder="论坛分享的主题..." rows="3"></textarea></div></div>
@@ -461,6 +463,77 @@ const DEFAULT_ENDING_BG_DATA = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABA
 
 function pickAudio(key) {
     document.getElementById('audio-' + key).click();
+}
+
+// ============ 解析页音频试听 ============
+let previewAudio = null; // { type, audio, fallbackTried }
+
+function togglePreview(type) {
+    const info = audioFiles[type];
+    if (!info || !info.url) { showToast('⚠️ 请先搜索歌词获取音频', true); return; }
+
+    // 如果正在预览同一首歌，切换播放/暂停
+    if (previewAudio && previewAudio.type === type) {
+        if (previewAudio.audio.paused) {
+            previewAudio.audio.play();
+            updatePreviewBtn(type, '⏸ 暂停');
+        } else {
+            previewAudio.audio.pause();
+            updatePreviewBtn(type, '▶ 试听');
+        }
+        return;
+    }
+
+    // 停止之前的预览
+    stopPreview();
+
+    const isLocal = info.isLocalFile || (info.url && info.url.startsWith('blob:'));
+    let url = isLocal ? info.url : encodeURI(ensureHttps(info.url));
+
+    const audio = new Audio(url);
+    previewAudio = { type, audio, fallbackTried: false };
+
+    const btn = document.getElementById('btn-play-' + type);
+    if (btn) btn.textContent = '⏳...';
+
+    audio.addEventListener('canplay', () => {
+        updatePreviewBtn(type, '▶ 试听');
+    });
+    audio.addEventListener('error', () => {
+        // 尝试回退 URL
+        if (!previewAudio || previewAudio.type !== type) return;
+        if (!previewAudio.fallbackTried && info.fallbackUrl) {
+            previewAudio.fallbackTried = true;
+            console.log('🔄 试听回退:', info.fallbackUrl.substring(0, 60));
+            audio.src = encodeURI(info.fallbackUrl);
+            return;
+        }
+        updatePreviewBtn(type, '⚠️ 失败');
+        showToast('⚠️ 音频加载失败，请尝试下载或本地导入', true);
+    });
+    audio.addEventListener('ended', () => {
+        updatePreviewBtn(type, '▶ 试听');
+    });
+    audio.play().then(() => {
+        updatePreviewBtn(type, '⏸ 暂停');
+    }).catch(e => {
+        console.warn('预览播放失败:', e.message);
+        updatePreviewBtn(type, '▶ 试听');
+    });
+}
+
+function stopPreview() {
+    if (previewAudio) {
+        previewAudio.audio.pause();
+        previewAudio.audio.src = '';
+        updatePreviewBtn(previewAudio.type, '▶ 试听');
+        previewAudio = null;
+    }
+}
+
+function updatePreviewBtn(type, text) {
+    const btn = document.getElementById('btn-play-' + type);
+    if (btn) btn.textContent = text;
 }
 
 async function downloadAudio(type) {
@@ -3755,9 +3828,11 @@ function showSongBtns(type) {
     const b1 = document.getElementById('btn-fetch-' + type);
     const b2 = document.getElementById('btn-audio-' + type);
     const b3 = document.getElementById('btn-dl-' + type);
+    const b4 = document.getElementById('btn-play-' + type);
     if (b1) b1.style.display = '';
     if (b2) b2.style.display = '';
     if (b3) b3.style.display = '';
+    if (b4) b4.style.display = '';
     // 显示歌词区（如果已有歌词或搜索过）
     const lyr = document.getElementById('f-' + type + '-lyrics');
     const lyricsVal = (lyr && lyr.value.trim());
