@@ -496,8 +496,8 @@ function _startPreview(type, srcUrl) {
                 return;
             }
         }
-        updatePreviewBtn(type, '⚠️ 失败');
-        showToast('⚠️ 音频加载失败，请下载或本地导入', true);
+        updatePreviewBtn(type, '⚠️ 损坏');
+        showToast('⚠️ 源文件损坏，请下载后本地导入', true);
     });
 
     audio.src = srcUrl;
