@@ -3924,5 +3924,14 @@ function hideSongBtns(type) {
     </div>
 </div>
 
+<script>
+// 注册 Service Worker 修复 OSS 损坏音频
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/worship-ppt-generator/sw.js', { scope: '/worship-ppt-generator/' })
+        .then(reg => console.log('🔧 SW已注册，OSS音频自动修复'))
+        .catch(e => console.warn('SW注册失败:', e.message));
+}
+</script>
+
 </body>
 </html>
