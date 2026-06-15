@@ -118,8 +118,8 @@ input, textarea, select, button { font-family: inherit; }
 
 .slide-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0f0720; z-index: 300; flex-direction: column; }
 .slide-overlay.show { display: flex; }
-.slide-stage { flex: 1; min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 16px; }
-.slide-page { width: min(100vw, calc(100dvh * 16/9)); height: min(100dvh, calc(100vw * 9/16)); background: #5B1A6E; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 3% 5%; overflow: hidden; border-radius: 4px; --fs-scale: 1; --lh: 1.6; }
+.slide-stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.slide-page { width: min(100vw, calc(100vh * 16/9)); height: min(100vh, calc(100vw * 9/16)); background: #5B1A6E; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 3% 5%; overflow: hidden; border-radius: 4px; --fs-scale: 1; --lh: 1.6; }
 .slide-page .s-title { font-size: calc(clamp(24px,5vw,96px) * var(--fs-scale)); color: #fff; font-weight: 700; text-align: center; line-height: var(--lh); }
 .slide-page .s-subtitle { font-size: calc(clamp(18px,3.5vw,72px) * var(--fs-scale)); color: #F5D76E; text-align: center; margin-top: 6px; line-height: var(--lh); }
 .slide-page .s-body { font-size: calc(clamp(18px,4vw,80px) * var(--fs-scale)); color: #fff; text-align: center; line-height: var(--lh); margin-top: 14px; max-width: 95%; word-break: break-word; }
@@ -134,15 +134,10 @@ input, textarea, select, button { font-family: inherit; }
 .slide-ctrl-btn:hover { border-color: var(--border-active); color: var(--text); }
 .slide-ctrl-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 .slide-counter { font-size: 13px; color: var(--text-secondary); min-width: 48px; text-align: center; }
-.slide-toc { display: flex; gap: 3px; padding: 5px 10px; overflow-x: auto; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); scroll-behavior: smooth; }
-.slide-toc.hidden { display: none; }
-.slide-toc-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; border-radius: 4px; background: var(--border); border: none; cursor: pointer; font-size: 9px; color: var(--text-muted); transition: all 0.15s; padding: 2px 4px; min-width: 22px; line-height: 1.1; }
-.slide-toc-item:hover { background: rgba(255,255,255,0.15); color: var(--text); }
-.slide-toc-item.current { background: var(--primary); color: #fff; }
+.slide-toc { display: flex; gap: 4px; padding: 6px 16px; overflow-x: auto; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); }
+.slide-toc-item { flex-shrink: 0; width: 32px; height: 24px; border-radius: 4px; background: var(--border); border: none; cursor: pointer; font-size: 10px; color: var(--text-muted); transition: all 0.15s; }
+.slide-toc-item.current { background: var(--primary); color: #fff; width: 40px; }
 .slide-toc-item.section-start { border-left: 2px solid var(--amber); }
-.slide-toc-item .toc-num { font-size: 8px; opacity: 0.6; }
-.slide-toc-item .toc-label { font-size: 10px; font-weight: 600; }
-.slide-toc-item.current .toc-num { opacity: 1; }
 
 .slide-audio-bar { display: none; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); gap: 8px; }
 .slide-audio-bar.show { display: flex; }
@@ -157,13 +152,6 @@ input, textarea, select, button { font-family: inherit; }
 .side-btn { padding: 10px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); font-size: 12px; cursor: pointer; writing-mode: horizontal-tb; text-align: center; transition: all 0.15s; min-width: 52px; }
 .side-btn:hover { border-color: var(--border-active); color: var(--text); }
 .side-btn.done { border-color: var(--success); color: var(--success); }
-.side-label { font-size: 13px; font-weight: 600; display: block; }
-.side-hint { font-size: 10px; color: var(--text-muted); display: block; margin-top: 1px; }
-
-.btn-ghost-sm { background: transparent; color: var(--text-muted); padding: 6px 12px; font-size: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; }
-.btn-ghost-sm:hover { border-color: var(--border-active); color: var(--text); }
-.btn-play-preview { color: var(--success); border-color: var(--success-bg); }
-.btn-play-preview:hover { background: var(--success-bg); color: var(--success); }
 
 .text-editor textarea { min-height: 80px; }
 .text-placeholder { color: var(--text-muted); font-size: 14px; text-align: center; padding: 20px; }
@@ -209,33 +197,23 @@ input, textarea, select, button { font-family: inherit; }
         </div>
         <div class="field-card"><span class="field-label">日期</span><div class="field-value"><input type="text" id="f-date" placeholder="2026.6.7"></div></div>
         <div class="field-card"><span class="field-label">上周</span><div class="field-value"><textarea id="f-lastweek" placeholder="上周的默想或回顾内容..." rows="2"></textarea></div></div>
-        <div class="field-card"><span class="field-label">赞美 1</span><div class="field-value"><input type="text" id="f-praise1" placeholder="91 二十四小时呼吁"><textarea id="f-praise1-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="praise1-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('praise1')" style="display:none;" id="btn-fetch-praise1">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('praise1')" style="display:none;" id="btn-audio-praise1">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('praise1')" style="display:none;" id="btn-dl-praise1">⬇ 下载</button><button class="btn-ghost-sm btn-play-preview" onclick="togglePreview('praise1')" style="display:none;" id="btn-play-praise1">▶ 试听</button></div></div></div>
-        <div class="field-card"><span class="field-label">赞美 2</span><div class="field-value"><input type="text" id="f-praise2" placeholder="118 Remnant"><textarea id="f-praise2-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="praise2-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('praise2')" style="display:none;" id="btn-fetch-praise2">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('praise2')" style="display:none;" id="btn-audio-praise2">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('praise2')" style="display:none;" id="btn-dl-praise2">⬇ 下载</button><button class="btn-ghost-sm btn-play-preview" onclick="togglePreview('praise2')" style="display:none;" id="btn-play-praise2">▶ 试听</button></div></div></div>
-        <div class="field-card"><span class="field-label">特颂</span><div class="field-value"><input type="text" id="f-special" placeholder="没有则留空"><textarea id="f-special-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="special-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('special')" style="display:none;" id="btn-fetch-special">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('special')" style="display:none;" id="btn-audio-special">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('special')" style="display:none;" id="btn-dl-special">⬇ 下载</button><button class="btn-ghost-sm btn-play-preview" onclick="togglePreview('special')" style="display:none;" id="btn-play-special">▶ 试听</button></div></div></div>
+        <div class="field-card"><span class="field-label">赞美 1</span><div class="field-value"><input type="text" id="f-praise1" placeholder="91 二十四小时呼吁"><div class="field-badges" id="praise1-badges"></div></div></div>
+        <div class="field-card"><span class="field-label">赞美 2</span><div class="field-value"><input type="text" id="f-praise2" placeholder="118 Remnant"><div class="field-badges" id="praise2-badges"></div></div></div>
+        <div class="field-card"><span class="field-label">特颂</span><div class="field-value"><input type="text" id="f-special" placeholder="没有则留空"><div class="field-badges" id="special-badges"></div></div></div>
         <div class="field-card"><span class="field-label">诗篇</span><div class="field-value"><input type="text" id="f-psalm" placeholder="23" style="width:80px;"><div class="field-badges" id="psalm-badges"></div></div></div>
-        <div class="field-card"><span class="field-label">新编 1</span><div class="field-value"><input type="text" id="f-hymn1" placeholder="54 心向主宝座歌"><textarea id="f-hymn1-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="hymn1-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('hymn1')" style="display:none;" id="btn-fetch-hymn1">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('hymn1')" style="display:none;" id="btn-audio-hymn1">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('hymn1')" style="display:none;" id="btn-dl-hymn1">⬇ 下载</button><button class="btn-ghost-sm btn-play-preview" onclick="togglePreview('hymn1')" style="display:none;" id="btn-play-hymn1">▶ 试听</button></div></div></div>
-        <div class="field-card"><span class="field-label">新编 2</span><div class="field-value"><input type="text" id="f-hymn2" placeholder="258 耶稣领我歌"><textarea id="f-hymn2-lyrics" placeholder="歌词自动匹配，也可粘贴替换" rows="3" style="display:none;margin-top:6px;"></textarea><div class="field-badges" id="hymn2-badges"></div><div class="field-actions" style="margin-top:4px;display:flex;gap:4px;justify-content:flex-end;"><button class="btn-ghost-sm" onclick="fetchLyrics('hymn2')" style="display:none;" id="btn-fetch-hymn2">搜歌词</button><button class="btn-ghost-sm" onclick="pickAudio('hymn2')" style="display:none;" id="btn-audio-hymn2">🎵 本地音频</button><button class="btn-ghost-sm" onclick="downloadAudio('hymn2')" style="display:none;" id="btn-dl-hymn2">⬇ 下载</button><button class="btn-ghost-sm btn-play-preview" onclick="togglePreview('hymn2')" style="display:none;" id="btn-play-hymn2">▶ 试听</button></div></div></div>
+        <div class="field-card"><span class="field-label">新编 1</span><div class="field-value"><input type="text" id="f-hymn1" placeholder="54 心向主宝座歌"><div class="field-badges" id="hymn1-badges"></div></div></div>
+        <div class="field-card"><span class="field-label">新编 2</span><div class="field-value"><input type="text" id="f-hymn2" placeholder="258 耶稣领我歌"><div class="field-badges" id="hymn2-badges"></div></div></div>
         <div class="field-card"><span class="field-label">证道 1</span><div class="field-value"><textarea id="f-sermon1" placeholder="赛66：12-24 赐给存留者的应许" rows="2"></textarea></div></div>
         <div class="field-card"><span class="field-label">证道 2</span><div class="field-value"><textarea id="f-sermon2" placeholder="创3：15 永远的黑暗经济" rows="2"></textarea></div></div>
-        <div class="field-card"><span class="field-label">论坛要点</span><div class="field-value"><textarea id="f-forum" placeholder="论坛分享的主题..." rows="3"></textarea></div></div>
-        <div class="field-card"><span class="field-label">祷告</span><div class="field-value"><textarea id="f-declaration" placeholder="777的祷告..." rows="3"></textarea></div></div>
+        <div class="field-card"><span class="field-label">论坛</span><div class="field-value"><textarea id="f-forum" placeholder="论坛分享的主题..." rows="3"></textarea></div></div>
+        <div class="field-card"><span class="field-label">宣告</span><div class="field-value"><textarea id="f-declaration" placeholder="777的祷告..." rows="3"></textarea></div></div>
         
         <div class="btn-grid" style="margin-top: 8px;">
             <button class="btn btn-primary" onclick="buildSlideshow()">生成幻灯片</button>
             <button class="btn btn-outline" onclick="document.getElementById('edit-section').style.display='none';document.getElementById('input-section').scrollIntoView({behavior:'smooth'})">返回修改</button>
         </div>
-        <div style="margin-top:8px;text-align:right;">
-            <button class="btn-ghost-sm" onclick="downloadAllAudio()" id="btn-dl-all" style="display:none;">⬇ 下载全部音频</button>
-        </div>
     </div>
 </div>
-
-<!-- Hidden file inputs for local audio -->
-<input type="file" id="audio-praise1" accept="audio/*" style="display:none" onchange="onAudioSelected('praise1', this)">
-<input type="file" id="audio-praise2" accept="audio/*" style="display:none" onchange="onAudioSelected('praise2', this)">
-<input type="file" id="audio-special" accept="audio/*" style="display:none" onchange="onAudioSelected('special', this)">
-<input type="file" id="audio-hymn1" accept="audio/*" style="display:none" onchange="onAudioSelected('hymn1', this)">
-<input type="file" id="audio-hymn2" accept="audio/*" style="display:none" onchange="onAudioSelected('hymn2', this)">
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
@@ -268,38 +246,18 @@ input, textarea, select, button { font-family: inherit; }
             <span id="line-height-val" style="font-size:12px;color:var(--text-muted);min-width:24px;text-align:center;">1.6</span>
             <button class="slide-ctrl-btn" onclick="adjustLine(1)">行距+</button>
         </div>
-        <button class="slide-ctrl-btn" onclick="closeSlideshow(true)" style="color:var(--amber);">返回编辑</button>
-        <button class="slide-ctrl-btn" id="btn-close-slideshow" onclick="closeSlideshow(false)" style="color:var(--error);">关闭</button>
+        <button class="slide-ctrl-btn" id="btn-close-slideshow" onclick="closeSlideshow()" style="color:var(--error);">关闭</button>
     </div>
     <div class="slide-toc" id="slide-toc"><div id="slide-toc-list" style="display:flex;gap:4px;"></div></div>
 </div>
 
 <!-- Side panel (desktop only) -->
 <div class="side-panel" id="side-panel">
-    <button class="side-btn" onclick="parseFromSidePanel()" id="btn-side-parse">
-        <span class="side-label" id="parse-btn-label">一键匹配</span>
-        <span class="side-hint">解析+搜音频</span>
-    </button>
+    <button class="side-btn" onclick="parseFromSidePanel()" id="btn-side-parse"><span id="parse-btn-label">一键匹配</span></button>
     <button class="side-btn" onclick="buildSlideshow()">生成</button>
-    <button class="side-btn side-btn-save" onclick="manualSave()">
-        <span class="side-label">保存</span>
-        <span class="side-hint">防丢失</span>
-    </button>
+    <button class="side-btn" onclick="saveContent()">保存</button>
     <button class="side-btn" onclick="resetAll()">重置</button>
 </div>
-
-<!-- V1 compatibility: hidden containers required by JS (lyrics textareas now inline in edit section) -->
-<div id="psalm-content-group" style="display:none;"><textarea id="f-psalm-content"></textarea></div>
-<div id="praise1-lyrics-group" style="display:none;"></div>
-<div id="praise2-lyrics-group" style="display:none;"></div>
-<div id="special-lyrics-group" style="display:none;"></div>
-<div id="hymn1-lyrics-group" style="display:none;"></div>
-<div id="hymn2-lyrics-group" style="display:none;"></div>
-<div id="decl-quick-btns" style="display:none;"></div>
-<input type="file" id="img-cover" accept="image/*" style="display:none" onchange="onCoverImgSelected(this)">
-<input type="file" id="img-ending" accept="image/*" style="display:none" onchange="onEndingImgSelected(this)">
-<div id="img-cover-preview" style="display:none;"></div>
-<div id="img-ending-preview" style="display:none;"></div>
 
 <script>
 // ============ Audio Management ============
@@ -322,8 +280,8 @@ const CORS_PROXY_URL = 'https://api.codetabs.com/v1/proxy?quest=';
 // ★ 高频音频本地映射表（GitHub Pages同源，无CORS问题）
 // 通过 download-audio skill 下载后添加到列表，后续持续扩充
 const LOCAL_AUDIO_MAP = {
-    "你原来是宝贵的": "24-ni-yuanshi-baogui.mp3",
-    "主啊，在我人生中": "134-zhu-zai-wo-rensheng.mp3"
+    "你原来是宝贵的": "audio/ni-yuanshi-baogui-de.mp3",
+    "主啊，在我人生中": "audio/zhu-a-zai-woren-sheng-zhong.mp3"
 };
 
 // ★ 检查歌曲是否在本地映射中
@@ -395,13 +353,12 @@ async function cacheAudio(url, blob) {
     }
 }
 
-// 后台预下载音频（不阻塞UI）
-// CORS代理已废弃 — Audio元素可直接播放跨域音频，缓存仅用于同源文件
+// 后台预下载音频（不阻塞UI，下载完存入缓存）
+// onStatus(state): 'downloading' | 'cached' | 'failed' 可选回调
 async function prefetchAudioInBackground(remoteUrl, onStatus) {
     if (!remoteUrl) return;
     const url = ensureHttps(remoteUrl);
-    // 仅尝试同源/本地文件缓存，跳过远程（CORS不可用）
-    if (url.startsWith('http')) { if (onStatus) onStatus('cached'); return; }
+
     // 已缓存则跳过
     try {
         const db = await openAudioDB();
@@ -410,10 +367,63 @@ async function prefetchAudioInBackground(remoteUrl, onStatus) {
             req.onsuccess = () => resolve(req.result);
             req.onerror = () => resolve(null);
         });
-        if (existing && existing.blob) { if (onStatus) onStatus('cached'); return; }
+        if (existing && existing.blob) {
+            console.log('音频已缓存，跳过下载:', url.substring(0, 60));
+            if (onStatus) onStatus('cached');
+            return;
+        }
     } catch (e) {}
-    // 远程下载会因CORS失败 — 直接标记就绪（播放时走直接URL）
-    if (onStatus) onStatus('cached');
+
+    // 在后台下载
+    if (onStatus) onStatus('downloading', 0);
+    try {
+        console.log('后台预下载音频:', url.substring(0, 60) + '...');
+        const proxyUrl = CORS_PROXY_URL + encodeURIComponent(url);
+        const resp = await fetch(proxyUrl);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+        // 尝试读取 Content-Length 以显示进度
+        const contentLength = resp.headers.get('Content-Length');
+        const total = contentLength ? parseInt(contentLength) : 0;
+
+        if (total > 0 && resp.body) {
+            // 逐块读取，计算进度
+            const reader = resp.body.getReader();
+            const chunks = [];
+            let received = 0;
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+                received += value.length;
+                const pct = Math.round((received / total) * 100);
+                if (onStatus) onStatus('downloading', pct);
+            }
+            const blob = new Blob(chunks);
+            if (blob.size > 1000) {
+                const audioBlob = new Blob([blob], { type: 'audio/mpeg' });
+                await cacheAudio(url, audioBlob);
+                console.log('音频缓存成功:', url.substring(0, 60), blob.size + ' bytes');
+                if (onStatus) onStatus('cached');
+            } else {
+                if (onStatus) onStatus('failed');
+            }
+        } else {
+            // 无 Content-Length，直接读取整体
+            const blob = await resp.blob();
+            if (blob.size > 1000) {
+                const audioBlob = new Blob([blob], { type: 'audio/mpeg' });
+                await cacheAudio(url, audioBlob);
+                console.log('音频缓存成功:', url.substring(0, 60), blob.size + ' bytes');
+                if (onStatus) onStatus('cached');
+            } else {
+                if (onStatus) onStatus('failed');
+            }
+        }
+    } catch (e) {
+        console.warn('音频预下载失败:', e.message);
+        if (onStatus) onStatus('failed');
+    }
 }
 
 // 播放时先查缓存，缓存命中立即播放；否则实时下载
@@ -468,148 +478,15 @@ function pickAudio(key) {
     document.getElementById('audio-' + key).click();
 }
 
-// ============ 解析页音频试听 ============
-let previewAudio = null; // { type, audio, url, fallbackTried }
-
-function _startPreview(type, srcUrl) {
-    stopPreview();
-    const audio = new Audio();
-    previewAudio = { type, audio, url: srcUrl, fallbackTried: false };
-
-    const btn = document.getElementById('btn-play-' + type);
-    if (btn) btn.textContent = '⏳...';
-
-    const info = audioFiles[type];
-
-    audio.addEventListener('canplay', () => {
-        updatePreviewBtn(type, '▶ 试听');
-    });
-    audio.addEventListener('ended', () => {
-        updatePreviewBtn(type, '▶ 试听');
-    });
-    audio.addEventListener('error', () => {
-        if (!previewAudio || previewAudio.type !== type) return;
-        // 尝试回退 URL
-        if (!previewAudio.fallbackTried && info && info.fallbackUrl) {
-            previewAudio.fallbackTried = true;
-            const fb = info.isLocalFile ? info.fallbackUrl : encodeURI(ensureHttps(info.fallbackUrl));
-            if (fb && fb !== srcUrl) {
-                console.log('🔄 试听回退:', fb.substring(0, 60));
-                audio.src = fb;
-                return;
-            }
-        }
-        updatePreviewBtn(type, '⚠️ 损坏');
-        // 自动弹出下载页，用户右键保存后点"本地音频"导入即可
-        if (info && info.isRemote) {
-            window.open(info.url, '_blank');
-            showToast('⚠️ 音频不可用，已弹出下载 → 保存后点"本地音频"导入', true);
-        } else {
-            showToast('⚠️ 源文件损坏，请下载后本地导入', true);
-        }
-    });
-
-    audio.src = srcUrl;
-    audio.play().then(() => {
-        updatePreviewBtn(type, '⏸ 暂停');
-    }).catch(e => {
-        // play() 可能因为还没加载完而失败，canplay 之后重试
-        if (e.name === 'NotSupportedError') {
-            // 让 error 事件处理
-        } else {
-            console.warn('预览播放:', e.message);
-        }
-    });
-}
-
-function togglePreview(type) {
-    const info = audioFiles[type];
-    if (!info || !info.url) { showToast('⚠️ 请先搜索歌词获取音频', true); return; }
-
-    // 如果正在预览同一首歌，切换播放/暂停
-    if (previewAudio && previewAudio.type === type) {
-        if (previewAudio.audio.paused) {
-            previewAudio.audio.play();
-            updatePreviewBtn(type, '⏸ 暂停');
-        } else {
-            previewAudio.audio.pause();
-            updatePreviewBtn(type, '▶ 试听');
-        }
-        return;
-    }
-
-    // 停止之前的预览
-    stopPreview();
-
-    const isLocal = info.isLocalFile || (info.url && info.url.startsWith('blob:'));
-    const url = isLocal ? info.url : encodeURI(ensureHttps(info.url));
-    _startPreview(type, url);
-}
-
-function stopPreview() {
-    if (previewAudio) {
-        previewAudio.audio.pause();
-        previewAudio.audio.src = '';
-        updatePreviewBtn(previewAudio.type, '▶ 试听');
-        previewAudio = null;
-    }
-}
-
-function updatePreviewBtn(type, text) {
-    const btn = document.getElementById('btn-play-' + type);
-    if (btn) btn.textContent = text;
-}
-
-async function downloadAllAudio() {
-    const types = ['praise1','praise2','special','hymn1','hymn2'];
-    let count = 0;
-    for (const type of types) {
-        const info = audioFiles[type];
-        if (!info || !info.url || info.isLocalFile || info.url.startsWith('blob:')) continue;
-        count++;
-        setTimeout(() => window.open(info.url, '_blank'), count * 500);
-    }
-    if (count === 0) showToast('📎 没有需要下载的远程音频');
-    else showToast('⬇ 正在打开 ' + count + ' 个下载窗口，请逐个右键保存');
-}
-
-async function downloadAudio(type) {
-    const info = audioFiles[type];
-    if (!info || !info.url) { showToast('⚠️ 请先搜索歌词获取音频链接', true); return; }
-    // 本地 blob 文件不需要下载
-    if (info.url.startsWith('blob:')) { showToast('📎 已是本地文件'); return; }
-    const songName = document.getElementById('f-' + type).value.trim().replace(/^\d+[\s.、,，]*/, '') || 'song';
-    const filename = songName + '.mp3';
-    try {
-        showToast('⬇ 正在下载 ' + filename + '...');
-        const resp = await fetch(info.url);
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const blob = await resp.blob();
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        showToast('✅ 已下载：' + filename);
-    } catch (e) {
-        // 直接下载可能被CORS阻止，尝试window.open作为fallback
-        window.open(info.url, '_blank');
-        showToast('⚠️ 直接下载失败，已在新窗口打开，请右键另存为');
-    }
-}
-
 function onAudioSelected(key, input) {
     const file = input.files[0];
     if (!file) return;
     // Revoke old URL if exists
-    if (audioFiles[key] && audioFiles[key].url && audioFiles[key].url.startsWith('blob:')) {
+    if (audioFiles[key] && audioFiles[key].url) {
         URL.revokeObjectURL(audioFiles[key].url);
     }
-    audioFiles[key] = { url: URL.createObjectURL(file), name: file.name, isRemote: false, isLocalFile: true };
-    // 更新按钮文字和 badge 状态
-    const btn = document.getElementById('btn-audio-' + key);
-    if (btn) btn.textContent = '📎 ' + file.name.substring(0, 12) + (file.name.length > 12 ? '…' : '');
-    setFieldBadge(key, 'ok', '本地音频');
+    audioFiles[key] = { url: URL.createObjectURL(file), name: file.name };
+    document.getElementById('audio-' + key + '-name').textContent = '📎 ' + file.name;
     showToast('✅ 音频已选择：' + file.name);
 }
 
@@ -688,91 +565,208 @@ const FIXED = {
 // ============ 🚀 一键生成（解析 → 匹配 → 幻灯片，三步全流程）============
 async function oneClickGenerate() {
     const raw = document.getElementById('paste-area').value.trim();
-    if (!raw) { showToast('请先在上方粘贴礼拜内容', true); return; }
-    const btn = document.querySelector('#input-section .btn-amber');
-    if (btn) btn.disabled = true;
-    showPhotoLoading(true, '解析内容...');
+    if (!raw) {
+        showToast('请先在上方粘贴礼拜内容', true);
+        return;
+    }
+    const btn = document.getElementById('btn-side-oneclick');
+    const labelEl = btn.querySelector('#oneclick-btn-label');
+    const hintEl = btn.querySelector('#oneclick-btn-hint');
+    btn.disabled = true;
     const t0 = Date.now();
+
+    const setStep = (step, hint) => {
+        labelEl.textContent = '第' + step + '步/3步';
+        hintEl.textContent = hint;
+    };
+
     try {
+        // 步骤1：解析文字
+        setStep(1, '解析内容…');
         document.getElementById('edit-section').style.display = 'none';
         await parseText();
+
+        // 步骤2：并行搜索（复用 parseFromSidePanel 逻辑）
+        setStep(2, '搜索音频经文…');
         const tasks = [];
-        const fields = ['praise1','praise2','special','hymn1','hymn2'];
-        for (const t of fields) { if (document.getElementById('f-'+t).value.trim()) tasks.push({kind:'audio',type:t}); }
-        const n = document.getElementById('f-psalm').value.trim().replace(/篇/g,'');
-        if (n&&/^\d+$/.test(n)) tasks.push({kind:'psalm'});
-        if (document.getElementById('f-sermon1').value.trim()) tasks.push({kind:'sermon',type:'sermon1'});
-        if (document.getElementById('f-sermon2').value.trim()) tasks.push({kind:'sermon',type:'sermon2'});
+        const fields = ['praise1', 'praise2', 'special', 'hymn1', 'hymn2'];
+        for (const type of fields) {
+            if (document.getElementById('f-' + type).value.trim()) tasks.push({ kind: 'audio', type });
+        }
+        const psalmNum = document.getElementById('f-psalm').value.trim().replace(/篇/g, '');
+        if (psalmNum && /^\d+$/.test(psalmNum)) tasks.push({ kind: 'psalm' });
+        if (document.getElementById('f-sermon1').value.trim()) tasks.push({ kind: 'sermon', type: 'sermon1' });
+        if (document.getElementById('f-sermon2').value.trim()) tasks.push({ kind: 'sermon', type: 'sermon2' });
+
         if (tasks.length > 0) {
-            showPhotoLoading(true, '搜索音频经文...');
-            await Promise.allSettled(tasks.map(t=>{
-                if(t.kind==='audio')return fetchLyricsSilent(t.type);
-                if(t.kind==='psalm')return fetchPsalmSilent();
-                if(t.kind==='sermon')return fetchSermonSilent(t.type);
+            hintEl.textContent = tasks.length + '项并行…';
+            await Promise.allSettled(tasks.map(t => {
+                if (t.kind === 'audio') return fetchLyricsSilent(t.type);
+                if (t.kind === 'psalm') return fetchPsalmSilent();
+                if (t.kind === 'sermon') return fetchSermonSilent(t.type);
             }));
         }
-        loadFixedSongAudioById('praise-welcome','5b00f970605d87b30340f3b2487b0387','你原来是宝贵的');
-        loadFixedSongAudioById('praise-final','5b00f970605d87b30340f5467f65e853','主啊，在我人生中');
-        showPhotoLoading(true, '生成幻灯片...');
+
+        // 后台预取固定歌曲
+        loadFixedSongAudioById('praise-welcome', '5b00f970605d87b30340f3b2487b0387', '你原来是宝贵的');
+        loadFixedSongAudioById('praise-final', '5b00f970605d87b30340f5467f65e853', '主啊，在我人生中');
+
+        // 步骤3：生成幻灯片
+        setStep(3, '生成幻灯片…');
         await buildSlideshow();
-        showPhotoLoading(false);
-        showToast('一键生成完成！耗时 ' + ((Date.now()-t0)/1000).toFixed(1) + '秒');
-    } catch(err) {
+
+        const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+        showToast('🚀 一键生成完成！耗时 ' + elapsed + '秒');
+    } catch (err) {
         console.error('一键生成出错:', err);
-        showPhotoLoading(false);
-        showToast('出错: ' + err.message, true);
-    } finally { if (btn) btn.disabled = false; }
+        showToast('❌ 出错: ' + err.message, true);
+    } finally {
+        btn.disabled = false;
+        labelEl.textContent = '一键生成';
+        hintEl.textContent = '全流程';
+    }
 }
 
 // ============ Side Panel: 一键匹配 ============
 async function parseFromSidePanel() {
+    const btn = document.getElementById('btn-side-parse');
+    const labelEl = btn.querySelector('.side-label');
+    const hintEl = btn.querySelector('.side-hint');
     const raw = document.getElementById('paste-area').value.trim();
-    if (!raw) { showToast('请先在上方粘贴礼拜内容', true); return; }
-    showPhotoLoading(true, '解析文字...');
+
+    if (!raw) {
+        labelEl.textContent = '请先粘贴';
+        hintEl.textContent = '内容为空';
+        showToast('请先在上方粘贴礼拜内容', true);
+        setTimeout(() => {
+            labelEl.textContent = '一键匹配';
+            hintEl.textContent = '解析+搜音频';
+        }, 2000);
+        return;
+    }
+
+    btn.disabled = true;
+
     try {
-        document.getElementById('edit-section').style.display = 'none';
-        await parseText();
-        const tasks = [];
-        const fields = ['praise1','praise2','special','hymn1','hymn2'];
-        for (const t of fields) { if (document.getElementById('f-'+t).value.trim()) tasks.push({kind:'audio',type:t}); }
-        const n = document.getElementById('f-psalm').value.trim().replace(/篇/g,'');
-        if (n&&/^\d+$/.test(n)) tasks.push({kind:'psalm'});
-        if (document.getElementById('f-sermon1').value.trim()) tasks.push({kind:'sermon',type:'sermon1'});
-        if (document.getElementById('f-sermon2').value.trim()) tasks.push({kind:'sermon',type:'sermon2'});
-        let audioOk=0,audioFail=0,bibleOk=0,bibleFail=0;
-        if (tasks.length > 0) {
-            showPhotoLoading(true, tasks.length+'项并行搜索...');
-            const results = await Promise.allSettled(tasks.map(t=>{
-                if(t.kind==='audio')return fetchLyricsSilent(t.type);
-                if(t.kind==='psalm')return fetchPsalmSilent();
-                if(t.kind==='sermon')return fetchSermonSilent(t.type);
-            }));
-            results.forEach((r,i)=>{
-                const task=tasks[i];
-                if(r.status==='rejected'){if(task.kind==='audio')audioFail++;else bibleFail++;return;}
-                if(!r.value)return;
-                if(r.value.success){if(task.kind==='audio')audioOk++;else bibleOk++;}
-                else if(r.value.error){if(task.kind==='audio')audioFail++;else bibleFail++;}
-            });
+    // 阶段1：解析文字（纯本地操作，瞬间完成）
+    document.getElementById('edit-section').style.display = 'none';
+    await parseText(); // 内部会 await autoCompletePureNumbers()
+
+    // 阶段2：并行搜索所有内容（音频 + 经文）
+    // 收集所有需要搜索的任务
+    const tasks = [];
+    // 音频任务
+    const fields = ['praise1', 'praise2', 'special', 'hymn1', 'hymn2'];
+    for (const type of fields) {
+        if (document.getElementById('f-' + type).value.trim()) {
+            tasks.push({ kind: 'audio', type });
         }
-        let parts=[];
-        if(audioOk>0)parts.push(audioOk+'首音频');
-        if(bibleOk>0)parts.push(bibleOk+'段经文');
-        let fp=[];
-        if(audioFail>0)fp.push(audioFail+'首音频');
-        if(bibleFail>0)fp.push(bibleFail+'段经文');
-        let msg='一键匹配完成';
-        if(parts.length>0)msg+='：'+parts.join('、')+'已获取';
-        if(fp.length>0)msg+='，'+fp.join('、')+'未找到';
-        showPhotoLoading(false);
-        showToast(msg);
-        setTimeout(()=>document.getElementById('edit-section').scrollIntoView({behavior:'smooth',block:'start'}),300);
-        loadFixedSongAudioById('praise-welcome','5b00f970605d87b30340f3b2487b0387','你原来是宝贵的');
-        loadFixedSongAudioById('praise-final','5b00f970605d87b30340f5467f65e853','主啊，在我人生中');
+    }
+    // 诗篇经文任务
+    const psalmNum = document.getElementById('f-psalm').value.trim().replace(/篇/g, '');
+    if (psalmNum && /^\d+$/.test(psalmNum)) {
+        tasks.push({ kind: 'psalm' });
+    }
+    // 证道经文任务
+    if (document.getElementById('f-sermon1').value.trim()) {
+        tasks.push({ kind: 'sermon', type: 'sermon1' });
+    }
+    if (document.getElementById('f-sermon2').value.trim()) {
+        tasks.push({ kind: 'sermon', type: 'sermon2' });
+    }
+
+    let audioOk = 0, audioFail = 0, bibleOk = 0, bibleFail = 0;
+
+    if (tasks.length > 0) {
+        labelEl.textContent = '全部搜索中';
+        hintEl.textContent = tasks.length + '项并行';
+
+        // 并行执行所有任务
+        const results = await Promise.allSettled(tasks.map(t => {
+            if (t.kind === 'audio') return fetchLyricsSilent(t.type);
+            if (t.kind === 'psalm') return fetchPsalmSilent();
+            if (t.kind === 'sermon') return fetchSermonSilent(t.type);
+        }));
+
+        // 统计结果
+        results.forEach((r, i) => {
+            const task = tasks[i];
+            if (r.status === 'rejected') {
+                if (task.kind === 'audio') audioFail++;
+                else bibleFail++;
+                return;
+            }
+            const val = r.value;
+            if (!val) return; // null = 跳过
+            if (val.success) {
+                if (task.kind === 'audio') audioOk++;
+                else bibleOk++;
+            } else if (val.error) {
+                if (task.kind === 'audio') audioFail++;
+                else bibleFail++;
+            }
+        });
+
+        btn.classList.add('done');
+        btn.disabled = false;
+
+        // 组合结果提示
+        let parts = [];
+        if (audioOk > 0) parts.push(audioOk + '首音频');
+        if (bibleOk > 0) parts.push(bibleOk + '段经文');
+        let failParts = [];
+        if (audioFail > 0) failParts.push(audioFail + '首音频');
+        if (bibleFail > 0) failParts.push(bibleFail + '段经文');
+
+        if (parts.length > 0 && failParts.length === 0) {
+            labelEl.textContent = '全部完成';
+            hintEl.textContent = parts.join('+') + '✅';
+        } else if (parts.length > 0) {
+            labelEl.textContent = '匹配完成';
+            hintEl.textContent = parts.join('+') + '成功';
+        } else {
+            labelEl.textContent = '解析完成';
+            hintEl.textContent = '内容未找到';
+        }
+
+        let toastMsg = '✅ 一键匹配完成';
+        if (parts.length > 0) toastMsg += '：' + parts.join('、') + '已获取';
+        if (failParts.length > 0) toastMsg += '，' + failParts.join('、') + '未找到';
+        showToast(toastMsg);
+    } else {
+        btn.classList.add('done');
+        btn.disabled = false;
+        labelEl.textContent = '解析完成';
+        hintEl.textContent = '无内容需搜';
+        showToast('✅ 文字已解析完成');
+    }
+
+    // 自动滚动到编辑区
+    setTimeout(() => {
+        document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 300);
+
+    // 后台预取固定歌曲（你原来是宝贵的 + 主啊在我人生中），减少生成幻灯片时的等待
+    loadFixedSongAudioById('praise-welcome', '5b00f970605d87b30340f3b2487b0387', '你原来是宝贵的');
+    loadFixedSongAudioById('praise-final', '5b00f970605d87b30340f5467f65e853', '主啊，在我人生中');
+
+    // 8秒后恢复按钮
+    setTimeout(() => {
+        labelEl.textContent = '一键匹配';
+        hintEl.textContent = '解析+搜音频';
+        btn.classList.remove('done');
+    }, 8000);
+
     } catch(err) {
         console.error('一键匹配出错:', err);
-        showPhotoLoading(false);
-        showToast('匹配出错: ' + err.message, true);
+        showToast('❌ 匹配出错: ' + err.message, true);
+        btn.disabled = false;
+        labelEl.textContent = '匹配失败';
+        hintEl.textContent = '请重试';
+        setTimeout(() => {
+            labelEl.textContent = '一键匹配';
+            hintEl.textContent = '解析+搜音频';
+        }, 3000);
     }
 }
 
@@ -1045,61 +1039,48 @@ async function parseText() {
         document.getElementById('f-hymn2').value = (nums[1] || '').trim();
     }
 
-    // 6. Forum + Prayer/Declaration:
-    //    论坛要点/论坛(提问)后 → 到"祷告"/"宣告"边界 = 论坛内容
-    //    "祷告"/"宣告"之后 = 祷告/宣告内容
-    //    无"祷告"/"宣告"边界时，回退到777关键字分割逻辑
+    // 6. Forum + 777: 论坛后到第一个句号"。"=论坛内容（含句号），句号后=777宣告
+    //    也兼容换行分割：多行时第一行=论坛，剩余=777
     let forumText = '';
     let declText = '';
-    const forumMatch = raw.match(/论坛\s*(?:[（(]提问[）)])?\s*(?:要点)?\s*[：:\s]?\s*([\s\S]*?)$/);
+    const forumMatch = raw.match(/论坛\s*(?:[（(]提问[）)])?\s*[：:\s]?\s*([\s\S]*?)$/);
     if (forumMatch) {
-        let afterForum = forumMatch[1].trim();
-        // 去掉开头残留的"要点"标签后缀（如"论坛要点"匹配后残留"要点"）
-        afterForum = afterForum.replace(/^要点\s*[：:，,]?\s*/, '').trim();
-
-        // 优先查找"祷告"或"宣告"边界，在边界处切分论坛/祷告
-        const prayIdx = afterForum.search(/\b(?:祷告|宣告)\b/);
-        if (prayIdx > 0) {
-            forumText = afterForum.substring(0, prayIdx).trim();
-            declText = afterForum.substring(prayIdx).replace(/^(?:祷告|宣告)\s*[：:，,]?\s*/, '').trim();
-        } else if (prayIdx === 0) {
-            // "祷告"/"宣告"在开头，没有论坛内容
-            forumText = '';
-            declText = afterForum.replace(/^(?:祷告|宣告)\s*[：:，,]?\s*/, '').trim();
-        } else {
-            // 没有祷告/宣告边界 → 回退到777关键字分割逻辑
-            const fParts = afterForum.split(/\n/).map(l => l.trim()).filter(Boolean);
-            if (fParts.length >= 2) {
-                const declKeywords = /建立神国|准备300|形成3Camp|医治伟人|宝座的望楼|300%|\.3camp|里程碑|伟大事工|绝对望楼|绝对旅程|绝对里程碑/i;
-                var declLineIdx = -1;
-                for (var fi = 0; fi < fParts.length; fi++) {
-                    if (declKeywords.test(fParts[fi])) { declLineIdx = fi; break; }
-                }
-                if (declLineIdx > 0) {
-                    forumText = fParts.slice(0, declLineIdx).join('\n');
-                    declText = fParts.slice(declLineIdx).join('\n');
-                } else {
-                    // 找不到777关键字：第一段 = 论坛，剩余 = 祷告
-                    forumText = fParts[0];
-                    declText = fParts.slice(1).join('\n');
-                }
-            } else if (fParts.length === 1) {
-                const line = fParts[0];
-                const dotIdx = line.indexOf('。');
-                if (dotIdx > 0) {
-                    forumText = line.substring(0, dotIdx + 1).trim();
-                    declText = line.substring(dotIdx + 1).trim();
-                } else if (line.length > 80) {
-                    const declSplit = line.search(/宝座的望楼|300%|里程碑|\.3camp|医治伟人/i);
-                    if (declSplit > 0) {
-                        forumText = line.substring(0, declSplit).trim();
-                        declText = line.substring(declSplit).trim();
-                    } else {
-                        forumText = line;
-                    }
+        const afterForum = forumMatch[1].trim();
+        // 按换行分割
+        const fParts = afterForum.split(/\n/).map(l => l.trim()).filter(Boolean);
+        if (fParts.length >= 2) {
+            // 多行：查找777宣告起始行（按特征关键字），在其之前为论坛、之后为777宣告
+            const declKeywords = /建立神国|准备300|形成3Camp|医治伟人|宝座的望楼|300%|\.3camp|里程碑|伟大事工|绝对望楼|绝对旅程|绝对里程碑/i;
+            var declLineIdx = -1;
+            for (var fi = 0; fi < fParts.length; fi++) {
+                if (declKeywords.test(fParts[fi])) { declLineIdx = fi; break; }
+            }
+            if (declLineIdx > 0) {
+                forumText = fParts.slice(0, declLineIdx).join('\n');
+                declText = fParts.slice(declLineIdx).join('\n');
+            } else {
+                // 找不到特征关键字：第一段 = 论坛，剩余 = 777
+                forumText = fParts[0];
+                declText = fParts.slice(1).join('\n');
+            }
+        } else if (fParts.length === 1) {
+            const line = fParts[0];
+            // 单行：按第一个中文句号"。"分割
+            const dotIdx = line.indexOf('。');
+            if (dotIdx > 0) {
+                forumText = line.substring(0, dotIdx + 1).trim();
+                declText = line.substring(dotIdx + 1).trim();
+            } else if (line.length > 80) {
+                // 没有句号但很长：按特征词切分
+                const declSplit = line.search(/宝座的望楼|300%|里程碑|\.3camp|医治伟人/i);
+                if (declSplit > 0) {
+                    forumText = line.substring(0, declSplit).trim();
+                    declText = line.substring(declSplit).trim();
                 } else {
                     forumText = line;
                 }
+            } else {
+                forumText = line;
             }
         }
     }
@@ -1108,8 +1089,7 @@ async function parseText() {
     if (forumText && /777的/.test(forumText)) {
         const declLines = forumText.match(/^.*777的[^\n]*/gm);
         if (declLines) {
-            if (declText) declText = declLines.join('\n') + '\n' + declText;
-            else declText = declLines.join('\n');
+            declText = declLines.join('\n');
             forumText = forumText.replace(/^.*777的[^\n]*/gm, '').trim();
         }
     }
@@ -1127,7 +1107,6 @@ async function parseText() {
 
     // 8. 纯数字的赞美/新编字段自动补全为"编号 歌名"
     await autoCompletePureNumbers();
-    checkPraiseNames();
 }
 
 // AI解析结果填入表单
@@ -1159,7 +1138,6 @@ function fillAIParseResult(result) {
     if (result.declaration) document.getElementById('f-declaration').value = result.declaration;
     document.getElementById('edit-section').style.display = 'block';
     document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
-    checkPraiseNames();
 }
 
 // Only fill in song names for fields that have a pure number (e.g. "46" → "46 歌名")
@@ -1209,6 +1187,8 @@ const BIBLE_API = 'https://api.top237.top/ry-api/no-auth/bible/search';
 
 async function fetchBible(type) {
     let query = '';
+    const btn = event.target.closest('.fetch-btn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin"></span> 查询中...'; }
 
     try {
         if (type === 'psalm') {
@@ -1273,6 +1253,8 @@ async function fetchBible(type) {
         }
     } catch (err) {
         showToast('获取失败: ' + err.message, true);
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '🔍 自动获取经文'; }
     }
 }
 
@@ -1307,29 +1289,14 @@ function saveSongUrlToDict(songTitle, audioUrl, songName) {
 function lookupSongUrlFromDict(query) {
     const dict = getSongUrlDict();
     // 完整匹配优先
-    let info = dict[query];
-    if (!info) {
-        // 模糊匹配：字典中title包含query，或query包含title
-        const q = query.toLowerCase();
-        for (const [title, candidate] of Object.entries(dict)) {
-            const t = title.toLowerCase();
-            if (t.includes(q) || q.includes(t)) { info = candidate; break; }
-        }
+    if (dict[query]) return dict[query];
+    // 模糊匹配：字典中title包含query，或query包含title
+    const q = query.toLowerCase();
+    for (const [title, info] of Object.entries(dict)) {
+        const t = title.toLowerCase();
+        if (t.includes(q) || q.includes(t)) return info;
     }
-    // ★ 检测旧格式 hash URL（oss.top237.top 文件已重组，hash 格式已失效）
-    //    旧格式: assets/a1b2c3...（纯hash无扩展名）→ 返回null强制走API获取最新URL
-    //    新格式: assets/歌名.mp3（中文文件名）→ 正常使用
-    if (info && info.url) {
-        const pathOnly = info.url.replace(/^https?:\/\/[^\/]+\//, '');
-        if (/^assets\/[a-f0-9]{20,}$/.test(pathOnly)) {
-            console.warn('🗑️ 字典URL已过期（旧hash格式），清除并跳过缓存:', info.url.substring(0, 60));
-            // 清除过期条目
-            const titleKey = Object.keys(dict).find(k => dict[k] === info);
-            if (titleKey) { delete dict[titleKey]; localStorage.setItem(SONG_URL_DICT_KEY, JSON.stringify(dict)); }
-            return null;
-        }
-    }
-    return info || null;
+    return null;
 }
 
 async function getSongList() {
@@ -1348,9 +1315,11 @@ async function fetchLyrics(type) {
     const inputId = 'f-' + type;
     const lyricsId = 'f-' + type + '-lyrics';
     const groupId = type + '-lyrics-group';
+    const btn = event.target.closest('.fetch-btn');
 
     const val = document.getElementById(inputId).value.trim();
     if (!val) { showToast('请先输入赞美名称', true); return; }
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin"></span> 搜索中...'; }
 
     try {
         // Extract song name: strip "附" prefix + leading numbers (支持 "附40耶稣.惟有他" → "耶稣.惟有他")
@@ -1371,7 +1340,7 @@ async function fetchLyrics(type) {
 
         // Step 1: Search in song list
         const list = await getSongList();
-        const candidateList = shijiFilter !== null ? list.filter(s => s.shiji_index === shijiFilter || (shijiFilter === 0 && s.shiji_index == null)) : list;
+        const candidateList = shijiFilter !== null ? list.filter(s => s.shiji_index === shijiFilter) : list;
         let matches = candidateList.filter(s => {
             const title = (s.title || '').toLowerCase();
             return title.includes(query.toLowerCase()) || query.toLowerCase().includes(title);
@@ -1449,20 +1418,21 @@ async function fetchLyrics(type) {
             }
             // ★ 写入字典（供下次快速命中）
             saveSongUrlToDict(song.title, audioUrl, song.title + '.mp3');
-            _applyAudioToField(type, audioUrl, song.title, { shiji_index: song.shiji_index, xuhao: song.xuhao });
+            _applyAudioToField(type, audioUrl, song.title);
         }
 
         showToast('✅ 已获取「' + song.title + '」的歌词和音频！');
     } catch (err) {
         showToast(err.message, true);
         document.getElementById(groupId).style.display = 'block';
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '🔍 搜索歌词'; }
     }
 }
 
 // ============ 一键搜索所有音频 ============
 // 辅助：把音频URL应用到对应字段（含缓存状态显示）
-// songMeta 可选 { shiji_index, xuhao }，用于构造中文歌名 URL 回退
-function _applyAudioToField(type, audioUrl, songTitle, songMeta) {
+function _applyAudioToField(type, audioUrl, songTitle) {
     if (!audioUrl) return;
     if (audioFiles[type] && audioFiles[type].isBlob) URL.revokeObjectURL(audioFiles[type].url);
 
@@ -1475,25 +1445,14 @@ function _applyAudioToField(type, audioUrl, songTitle, songMeta) {
         return;
     }
 
-    let url = ensureHttps(audioUrl);
-    let fallbackUrl = null;
-
-    // ★ 构造中文歌名格式的回退 URL（OSS 迁移不完全，部分歌曲仅 hash/中文 其一可用）
-    if (songMeta && songMeta.xuhao) {
-        const collection = (songMeta.shiji_index === 2) ? '新编赞美诗' : '赞美耶稣诗集';
-        const rawPath = `assets/${collection}${songMeta.xuhao}首：${songTitle} [中质量].mp3`;
-        fallbackUrl = 'https://oss.top237.top/' + rawPath;
-    }
-
-    audioFiles[type] = { url: url, name: songTitle + '.mp3', isRemote: true, fallbackUrl: fallbackUrl };
-    setFieldBadge(type, 'ok', '已就绪');
+    audioFiles[type] = { url: ensureHttps(audioUrl), name: songTitle + '.mp3', isRemote: true };
     const nameEl = document.getElementById('audio-' + type + '-name');
     if (nameEl) {
         nameEl.textContent = '🎵 ' + songTitle + ' ⏳0%…';
-        prefetchAudioInBackground(url, (state, pct) => {
-            if (state === 'downloading') { nameEl.textContent = '🎵 ' + songTitle + ' ⏳' + (pct > 0 ? pct + '%…' : '下载中…'); setFieldBadge(type, 'warn', pct + '%'); }
-            else if (state === 'cached') { nameEl.textContent = '🎵 ' + songTitle + ' ✅已缓存'; setFieldBadge(type, 'ok', '已缓存'); }
-            else if (state === 'failed') { nameEl.textContent = '🎵 ' + songTitle + ' ⚠️缓存失败'; setFieldBadge(type, 'err', '缓存失败'); }
+        prefetchAudioInBackground(audioUrl, (state, pct) => {
+            if (state === 'downloading') nameEl.textContent = '🎵 ' + songTitle + ' ⏳' + (pct > 0 ? pct + '%…' : '下载中…');
+            else if (state === 'cached') nameEl.textContent = '🎵 ' + songTitle + ' ✅已缓存';
+            else if (state === 'failed') nameEl.textContent = '🎵 ' + songTitle + ' ⚠️缓存失败';
         });
     }
 }
@@ -1528,7 +1487,7 @@ async function fetchLyricsSilent(type) {
 
         // ★ 正常API搜索流程
         const list = await getSongList();
-        const candidateList = shijiFilter !== null ? list.filter(s => s.shiji_index === shijiFilter || (shijiFilter === 0 && s.shiji_index == null)) : list;
+        const candidateList = shijiFilter !== null ? list.filter(s => s.shiji_index === shijiFilter) : list;
         let matches = candidateList.filter(s => {
             const title = (s.title || '').toLowerCase();
             return title.includes(query.toLowerCase()) || query.toLowerCase().includes(title);
@@ -1578,14 +1537,11 @@ async function fetchLyricsSilent(type) {
         // 填入歌词
         document.getElementById(lyricsId).value = lyric;
         document.getElementById(groupId).style.display = 'block';
-        // V2: 显示内联歌词区
-        const v2lyr = document.getElementById(lyricsId);
-        if (v2lyr) v2lyr.style.display = '';
 
         // 加载音频 + ★ 写入字典（供下次快速命中）
         if (audioUrl) {
             saveSongUrlToDict(song.title, audioUrl, song.title + '.mp3');
-            _applyAudioToField(type, audioUrl, song.title, { shiji_index: song.shiji_index, xuhao: song.xuhao });
+            _applyAudioToField(type, audioUrl, song.title);
         }
 
         return { success: song.title };
@@ -1649,7 +1605,7 @@ function buildSlides(data) {
         const name = data[nameKey];
         const lyrics = data[lyricsKey];
         if (!name) return;
-        slides.push({ type: 'hymn', label: label, text: name, section: label, audioKey: nameKey });
+        slides.push({ type: 'hymn', label: label, text: name, section: label });
         tocSections.push({ name: label, slideIndex: slides.length - 1 });
         if (lyrics) {
             const lines = lyrics.split('\n').filter(l => l.trim());
@@ -1684,7 +1640,7 @@ function buildSlides(data) {
     // 5. 新编赞美第1首 — title + lyrics pages
     if (data.hymn1) {
         const h1Label = '新编赞美1';
-        slides.push({ type: 'hymn', label: '赞美', text: '新编赞美 ' + data.hymn1, section: h1Label, audioKey: 'hymn1' });
+        slides.push({ type: 'hymn', label: '赞美', text: '新编赞美 ' + data.hymn1, section: h1Label });
         tocSections.push({ name: h1Label, slideIndex: slides.length - 1 });
         if (data.hymn1Lyrics) {
             const lines = data.hymn1Lyrics.split('\n').filter(l => l.trim());
@@ -1706,7 +1662,7 @@ function buildSlides(data) {
     // 7. 新编赞美第2首 — title + lyrics pages
     if (data.hymn2) {
         const h2Label = '新编赞美2';
-        slides.push({ type: 'hymn', label: '请坐下', text: '新编赞美 ' + data.hymn2, section: h2Label, audioKey: 'hymn2' });
+        slides.push({ type: 'hymn', label: '请坐下', text: '新编赞美 ' + data.hymn2, section: h2Label });
         tocSections.push({ name: h2Label, slideIndex: slides.length - 1 });
         if (data.hymn2Lyrics) {
             const lines = data.hymn2Lyrics.split('\n').filter(l => l.trim());
@@ -1718,7 +1674,7 @@ function buildSlides(data) {
 
     // 8. 特颂（特殊赞美，可选）
     if (data.special) {
-        slides.push({ type: 'hymn', label: '特颂', text: data.special, section: '特颂', audioKey: 'special' });
+        slides.push({ type: 'hymn', label: '特颂', text: data.special, section: '特颂' });
         tocSections.push({ name: '特颂', slideIndex: slides.length - 1 });
         if (data.specialLyrics) {
             const lines = data.specialLyrics.split('\n').filter(l => l.trim());
@@ -1957,7 +1913,7 @@ function renderSlide() {
                 target.classList.remove('chk-editing');
             };
             // 显示板书输入栏
-            const cb = document.getElementById('chalk-input-bar'); if (cb) cb.style.display = 'flex';
+            document.getElementById('chalk-input-bar').style.display = 'flex';
             break;
         case 'simple':
             html = `<div class="s-title">${esc(s.title)}</div>`;
@@ -1981,8 +1937,7 @@ function renderSlide() {
 
     // 非板书页隐藏板书输入栏和鼠标事件
     if (s.type !== 'sermon-chalkboard') {
-        const chalkBar = document.getElementById('chalk-input-bar');
-        if (chalkBar) chalkBar.style.display = 'none';
+        document.getElementById('chalk-input-bar').style.display = 'none';
         page.onmousedown = null;
         page.onmousemove = null;
         page.onmouseup = null;
@@ -2001,49 +1956,19 @@ function renderSlide() {
 }
 
 // ============ TOC (Table of Contents) Navigation ============
-let tocVisible = true;
-
-// 章节名 → 简称映射（1-2字）
-function getSectionAbbr(name) {
-    const map = {
-        '开篇': '开', '题目': '题',
-        '献上赞美': '赞', '赞美': '赞',
-        '请起立': '立',
-        '经文诵读': '经', '诗篇': '诗',
-        '新编赞美': '编', '请坐下': '坐',
-        '特颂': '特',
-        '证道': '证', '讲道': '讲',
-        '信仰告白': '信',
-        '欢迎赞美': '迎', '欢迎': '迎',
-        '结束赞美': '终', '结束': '终',
-        '祝福祷告': '祷', '祷告': '祷',
-        '论坛分享': '论', '论坛要点': '论',
-        '自定义': '自',
-        '以马内利': '结'
-    };
-    // 精确匹配
-    if (map[name]) return map[name];
-    // 模糊匹配 "诗篇 23篇" → "诗"
-    for (const [key, abbr] of Object.entries(map)) {
-        if (name.indexOf(key) === 0) return abbr;
-    }
-    // 取首字
-    return name.charAt(0);
-}
+let tocVisible = false;
 
 function buildToc() {
     const list = document.getElementById('slide-toc-list');
     const toc = slides._toc || [];
-    list.innerHTML = toc.map((item, i) => {
-        const cls = 'slide-toc-item' + (i === 0 || (i > 0 && toc[i].name !== toc[i-1].name) ? ' section-start' : '');
-        const abbr = getSectionAbbr(item.name);
-        return '<button class="' + cls + '" data-index="' + item.slideIndex + '" onclick="goToSection(' + i + ')" title="' + esc(item.name) + '"><span class="toc-num">' + (i + 1) + '</span><span class="toc-label">' + esc(abbr) + '</span></button>';
-    }).join('');
+    list.innerHTML = toc.map((item, i) =>
+        `<button class="slide-toc-item" data-index="${item.slideIndex}" onclick="goToSection(${i})"><span class="toc-num">${i + 1}</span>${esc(item.name)}</button>`
+    ).join('');
 }
 
 function toggleToc() {
     tocVisible = !tocVisible;
-    document.getElementById('slide-toc').classList.toggle('hidden', !tocVisible);
+    document.getElementById('slide-toc').classList.toggle('show', tocVisible);
 }
 
 function goToSection(tocIndex) {
@@ -2076,20 +2001,16 @@ function updateTocHighlight() {
 
 function nextSlide() { if (currentSlide < slides.length - 1) { currentSlide++; renderSlide(); } }
 function prevSlide() { if (currentSlide > 0) { currentSlide--; renderSlide(); } }
-function closeSlideshow(backToEdit) {
+function closeSlideshow() {
     document.getElementById('slideshow-overlay').classList.remove('show');
-    const toc = document.getElementById('slide-toc'); if (toc) toc.classList.remove('hidden');
+    document.getElementById('slide-toc').classList.remove('show');
     document.getElementById('side-panel').style.display = '';
-    const cb = document.getElementById('chalk-input-bar'); if (cb) cb.style.display = 'none';
-    const cp = document.getElementById('chalk-props-bar'); if (cp) cp.style.display = 'none';
+    document.getElementById('chalk-input-bar').style.display = 'none';
+    document.getElementById('chalk-props-bar').style.display = 'none';
     chkSelectedId = null;
     chkDragState = null;
     tocVisible = false;
     stopAudio();
-    if (backToEdit) {
-        document.getElementById('edit-section').style.display = 'block';
-        document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
-    }
 }
 
 // ============ 板书操作（播放中交互编辑） ============
@@ -2432,11 +2353,7 @@ async function updateAudioForSlide() {
             const rawUrl = info.url;
             const isLocalBlob = rawUrl && rawUrl.startsWith('blob:');
             const isLocalFile = info.isLocalFile === true;
-            let audioUrl = (isLocalBlob || isLocalFile) ? rawUrl : ensureHttps(rawUrl);
-            // URL-encode 非 ASCII 字符（中文等），避免 Audio 元素 "no supported sources" 错误
-            if (audioUrl && !isLocalBlob && !isLocalFile) {
-                audioUrl = encodeURI(audioUrl);
-            }
+            const audioUrl = (isLocalBlob || isLocalFile) ? rawUrl : ensureHttps(rawUrl);
             const audio = new Audio();
             currentAudio = { key: s.audioKey, audio: audio, name: info.name };
 
@@ -2459,16 +2376,7 @@ async function updateAudioForSlide() {
                     btn.disabled = false;
                     btn.textContent = '▶ 播放';
                 });
-                audio.addEventListener('error', (e) => {
-                    console.warn('音频加载失败:', audio.src ? audio.src.substring(0, 80) : '(无源)', e);
-                    // 尝试回退 URL（主 URL 和回退 URL 格式不同，OSS 迁移不完整）
-                    const fallback = info.fallbackUrl;
-                    if (fallback && audio.src !== encodeURI(fallback) && !audio._triedFallback) {
-                        audio._triedFallback = true;
-                        console.log('🔄 尝试回退URL:', fallback.substring(0, 80));
-                        audio.src = encodeURI(fallback);
-                        return;
-                    }
+                audio.addEventListener('error', () => {
                     btn.disabled = false;
                     btn.textContent = '⚠️ 播放失败';
                 });
@@ -2512,21 +2420,11 @@ async function updateAudioForSlide() {
 
 function toggleAudio() {
     if (!currentAudio) return;
-    // 检查音频是否有有效的源（避免 "no supported sources" 错误）
-    const a = currentAudio.audio;
-    if (!a.src || a.src === 'undefined' || a.src === 'null' || a.src === window.location.href) {
-        showToast('⚠️ 音频尚未加载，请稍候再试');
-        return;
-    }
-    if (a.paused) {
-        a.play().catch(e => {
-            console.warn('音频播放失败:', e.message);
-            showToast('⚠️ 播放失败，请尝试重新生成');
-            document.getElementById('audio-btn-play').textContent = '▶ 播放';
-        });
+    if (currentAudio.audio.paused) {
+        currentAudio.audio.play();
         document.getElementById('audio-btn-play').textContent = '⏸ 暂停';
     } else {
-        a.pause();
+        currentAudio.audio.pause();
         document.getElementById('audio-btn-play').textContent = '▶ 播放';
     }
 }
@@ -2650,7 +2548,17 @@ function saveRecord(data) {
 function manualSave() {
     const data = collectSlideData();
     saveRecord(data);
-    showToast('内容已保存到本地');
+    const btn = document.getElementById('btn-manual-save');
+    btn.querySelector('.side-label').textContent = '已保存';
+    btn.querySelector('.side-hint').textContent = '✅';
+    btn.classList.add('saved');
+    showToast('✅ 内容已保存到本地');
+    // 2秒后恢复按钮文字
+    setTimeout(() => {
+        btn.querySelector('.side-label').textContent = '保存';
+        btn.querySelector('.side-hint').textContent = '防丢失';
+        btn.classList.remove('saved');
+    }, 2500);
 }
 
 function checkRestoreBar() {
@@ -3831,63 +3739,6 @@ function showPhotoLoading(s,m) {
     if (s) { if (t&&m) t.textContent=m; o.classList.add('show'); }
     else { o.classList.remove('show'); if (t) t.textContent='正在生成...'; }
 }
-
-// 更新字段状态徽章 (type: praise1/praise2/hymn1/hymn2, state: ok/warn/err, text)
-function setFieldBadge(type, state, text) {
-    const el = document.getElementById(type + '-badges');
-    if (!el) return;
-    const cls = state === 'ok' ? 'badge-ok' : state === 'warn' ? 'badge-warn' : 'badge-err';
-    el.innerHTML = '<span class="badge ' + cls + '">' + text + '</span>';
-}
-
-// 检查赞美名称是否只有数字（提示用户补充名称），并显示歌词区和操作按钮
-function checkPraiseNames() {
-    ['praise1','praise2','special','hymn1','hymn2'].forEach(type => {
-        const val = document.getElementById('f-' + type).value.trim();
-        if (!val) {
-            // 空值：隐藏歌词和按钮
-            const lyr = document.getElementById('f-' + type + '-lyrics');
-            if (lyr) lyr.style.display = 'none';
-            hideSongBtns(type);
-            return;
-        }
-        // 有值：显示操作按钮
-        showSongBtns(type);
-        // 检查是否只有编号
-        const clean = val.replace(/^附/, '').replace(/^\d+[\s.、,，]*/, '').trim();
-        if (!clean) {
-            setFieldBadge(type, 'warn', '需补全歌名');
-        }
-    });
-}
-
-function showSongBtns(type) {
-    const b1 = document.getElementById('btn-fetch-' + type);
-    const b2 = document.getElementById('btn-audio-' + type);
-    const b3 = document.getElementById('btn-dl-' + type);
-    const b4 = document.getElementById('btn-play-' + type);
-    if (b1) b1.style.display = '';
-    if (b2) b2.style.display = '';
-    if (b3) b3.style.display = '';
-    if (b4) b4.style.display = '';
-    // 显示"下载全部"按钮
-    const dlAll = document.getElementById('btn-dl-all');
-    if (dlAll) dlAll.style.display = '';
-    // 显示歌词区（如果已有歌词或搜索过）
-    const lyr = document.getElementById('f-' + type + '-lyrics');
-    const lyricsVal = (lyr && lyr.value.trim());
-    if (lyr && lyricsVal) {
-        lyr.style.display = '';
-        document.getElementById(type + '-lyrics-group').style.display = 'block';
-    }
-}
-
-function hideSongBtns(type) {
-    const b1 = document.getElementById('btn-fetch-' + type);
-    const b2 = document.getElementById('btn-audio-' + type);
-    if (b1) b1.style.display = 'none';
-    if (b2) b2.style.display = 'none';
-}
 // ============ Page Init: 提前预加载固定歌曲音频 ============
 // 在页面加载时就开始后台下载欢迎赞美(24)和结束赞美(134)的音频
 // 这样用户粘贴内容后一键生成时，音频已经就绪
@@ -3948,15 +3799,6 @@ function hideSongBtns(type) {
         <div class="decl-modal-body" id="decl-modal-body"></div>
     </div>
 </div>
-
-<script>
-// 注册 Service Worker 修复 OSS 损坏音频
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/worship-ppt-generator/sw.js', { scope: '/worship-ppt-generator/' })
-        .then(reg => console.log('🔧 SW已注册，OSS音频自动修复'))
-        .catch(e => console.warn('SW注册失败:', e.message));
-}
-</script>
 
 </body>
 </html>
