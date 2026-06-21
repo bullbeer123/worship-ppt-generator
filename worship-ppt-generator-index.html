@@ -165,6 +165,21 @@ input, textarea, select, button { font-family: inherit; }
 .btn-play-preview { color: var(--success); border-color: var(--success-bg); }
 .btn-play-preview:hover { background: var(--success-bg); color: var(--success); }
 
+/* Verification dashboard */
+.verify-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 8px; }
+.verify-item.has-warn { border-color: rgba(240,160,32,0.3); }
+.verify-item.has-err { border-color: rgba(240,80,80,0.3); }
+.verify-item-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.verify-icon { font-size: 16px; flex-shrink: 0; }
+.verify-label { font-size: 14px; font-weight: 600; color: var(--text); }
+.verify-value { font-size: 13px; color: var(--text-secondary); word-break: break-word; }
+.verify-detail { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.verify-tag { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 10px; }
+.verify-tag-ok { background: var(--success-bg); color: var(--success); }
+.verify-tag-warn { background: var(--warning-bg); color: var(--warning); }
+.verify-tag-err { background: var(--error-bg); color: var(--error); }
+.verify-tag-info { background: rgba(124,92,231,0.12); color: var(--primary-text); }
+
 .text-editor textarea { min-height: 80px; }
 .text-placeholder { color: var(--text-muted); font-size: 14px; text-align: center; padding: 20px; }
 
@@ -227,6 +242,20 @@ input, textarea, select, button { font-family: inherit; }
         <div style="margin-top:8px;text-align:right;">
             <button class="btn-ghost-sm" onclick="downloadAllAudio()" id="btn-dl-all" style="display:none;">⬇ 下载全部音频</button>
         </div>
+    </div>
+</div>
+
+<!-- Screen 2.5: Verification Dashboard -->
+<div class="section" id="verify-section" style="display:none;">
+    <div class="section-header">
+        <span class="section-title">🔍 自动识别验证</span>
+        <span class="section-badge" id="verify-summary">请逐项确认</span>
+    </div>
+    <div class="hint" style="margin-bottom:12px;color:var(--text-secondary);font-size:13px;">以下内容由 AI 自动匹配，请逐项核对后点击确认生成</div>
+    <div id="verify-list"></div>
+    <div class="btn-grid" style="margin-top:14px;">
+        <button class="btn btn-outline" onclick="closeVerify()">返回修改</button>
+        <button class="btn btn-amber" onclick="confirmVerify()">✅ 确认无误，生成幻灯片 →</button>
     </div>
 </div>
 
@@ -573,6 +602,133 @@ async function downloadAllAudio() {
     else showToast('⬇ 正在打开 ' + count + ' 个下载窗口，请逐个右键保存');
 }
 
+// ============ Verification Dashboard ============
+function showVerify() {
+    const fields = [
+        { key: 'praise1', label: '赞美 1' },
+        { key: 'praise2', label: '赞美 2' },
+        { key: 'special', label: '特颂' },
+        { key: 'hymn1',  label: '新编 1' },
+        { key: 'hymn2',  label: '新编 2' },
+    ];
+    const items = [];
+    let warnCount = 0, errCount = 0;
+
+    // Songs
+    for (const f of fields) {
+        const val = document.getElementById('f-' + f.key).value.trim();
+        if (!val) continue;
+        const lyrics = document.getElementById('f-' + f.key + '-lyrics').value.trim();
+        const audio = audioFiles[f.key];
+        let lyricTag, audioTag, warn = false;
+
+        if (lyrics) { lyricTag = '<span class="verify-tag verify-tag-ok">歌词✅</span>'; }
+        else { lyricTag = '<span class="verify-tag verify-tag-warn">歌词未匹配⚠️</span>'; warn = true; }
+
+        if (audio && audio.url) {
+            if (audio.isLocalFile || (audio.url && audio.url.startsWith('blob:'))) {
+                audioTag = '<span class="verify-tag verify-tag-ok">本地音频✅</span>';
+            } else {
+                audioTag = '<span class="verify-tag verify-tag-info">远程音频🔗</span>';
+            }
+        } else { audioTag = '<span class="verify-tag verify-tag-warn">无音频⚠️</span>'; warn = true; }
+
+        const icon = warn ? '⚠️' : '✅';
+        const cls = warn ? 'verify-item has-warn' : 'verify-item';
+        items.push(`<div class="${cls}">
+            <div class="verify-item-header"><span class="verify-icon">${icon}</span><span class="verify-label">${f.label}: ${val}</span></div>
+            <div class="verify-detail">${lyricTag} ${audioTag}</div>
+        </div>`);
+        if (warn) warnCount++;
+    }
+
+    // Psalm
+    const psalm = document.getElementById('f-psalm').value.trim();
+    if (psalm) {
+        const psalmContent = document.getElementById('f-psalm-content')?.value.trim();
+        let tag, icon, cls = 'verify-item';
+        if (psalmContent) {
+            const lines = psalmContent.split('\n').filter(l => l.trim()).length;
+            tag = `<span class="verify-tag verify-tag-ok">${lines} 节经文✅</span>`;
+            icon = '✅';
+        } else {
+            tag = '<span class="verify-tag verify-tag-warn">经文未自动获取⚠️</span>';
+            icon = '⚠️'; cls += ' has-warn'; warnCount++;
+        }
+        items.push(`<div class="${cls}">
+            <div class="verify-item-header"><span class="verify-icon">${icon}</span><span class="verify-label">经文: 诗篇 ${psalm}篇</span></div>
+            <div class="verify-detail">${tag}</div>
+        </div>`);
+    }
+
+    // Sermons
+    for (const s of ['sermon1', 'sermon2']) {
+        const val = document.getElementById('f-' + s).value.trim();
+        if (!val) continue;
+        const label = s === 'sermon1' ? '证道 1' : '证道 2';
+        items.push(`<div class="verify-item">
+            <div class="verify-item-header"><span class="verify-icon">📖</span><span class="verify-label">${label}: ${val}</span></div>
+        </div>`);
+    }
+
+    // Forum
+    const forum = document.getElementById('f-forum').value.trim();
+    if (forum) {
+        const icon = forum.length > 10 ? '✅' : '⚠️';
+        const cls = forum.length > 10 ? 'verify-item' : 'verify-item has-warn';
+        if (forum.length <= 10) warnCount++;
+        items.push(`<div class="${cls}">
+            <div class="verify-item-header"><span class="verify-icon">${icon}</span><span class="verify-label">论坛要点</span></div>
+            <div class="verify-value">${esc(forum.substring(0, 80)) + (forum.length > 80 ? '…' : '')}</div>
+        </div>`);
+    }
+
+    // Prayer
+    const prayer = document.getElementById('f-declaration').value.trim();
+    if (prayer) {
+        items.push(`<div class="verify-item">
+            <div class="verify-item-header"><span class="verify-icon">🙏</span><span class="verify-label">祷告</span></div>
+            <div class="verify-value">${esc(prayer.substring(0, 80)) + (prayer.length > 80 ? '…' : '')}</div>
+        </div>`);
+    }
+
+    // Date
+    const date = document.getElementById('f-date').value.trim();
+    if (date) {
+        items.push(`<div class="verify-item">
+            <div class="verify-item-header"><span class="verify-icon">📅</span><span class="verify-label">日期: ${date}</span></div>
+        </div>`);
+    }
+
+    document.getElementById('verify-list').innerHTML = items.join('');
+    const summary = warnCount > 0 ? `${warnCount} 项需注意` : '全部匹配 ✅';
+    document.getElementById('verify-summary').textContent = summary;
+    document.getElementById('edit-section').style.display = 'none';
+    document.getElementById('verify-section').style.display = '';
+    document.getElementById('verify-section').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('input-section').style.display = 'none';
+}
+
+function closeVerify() {
+    document.getElementById('verify-section').style.display = 'none';
+    document.getElementById('edit-section').style.display = '';
+    document.getElementById('input-section').style.display = '';
+    document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function confirmVerify() {
+    document.getElementById('verify-section').style.display = 'none';
+    document.getElementById('input-section').style.display = 'none';
+    showPhotoLoading(true, '生成幻灯片...');
+    try {
+        await buildSlideshow();
+        showPhotoLoading(false);
+    } catch (e) {
+        showPhotoLoading(false);
+        showToast('生成出错: ' + e.message, true);
+    }
+}
+
 async function downloadAudio(type) {
     const info = audioFiles[type];
     if (!info || !info.url) { showToast('⚠️ 请先搜索歌词获取音频链接', true); return; }
@@ -713,10 +869,10 @@ async function oneClickGenerate() {
         }
         loadFixedSongAudioById('praise-welcome','5b00f970605d87b30340f3b2487b0387','你原来是宝贵的');
         loadFixedSongAudioById('praise-final','5b00f970605d87b30340f5467f65e853','主啊，在我人生中');
-        showPhotoLoading(true, '生成幻灯片...');
-        await buildSlideshow();
+        showPhotoLoading(true, '生成验证...');
+        showVerify();
         showPhotoLoading(false);
-        showToast('一键生成完成！耗时 ' + ((Date.now()-t0)/1000).toFixed(1) + '秒');
+        showToast('已自动匹配完成，请逐项核对后确认生成');
     } catch(err) {
         console.error('一键生成出错:', err);
         showPhotoLoading(false);
