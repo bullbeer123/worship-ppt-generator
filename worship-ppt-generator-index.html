@@ -134,15 +134,17 @@ input, textarea, select, button { font-family: inherit; }
 .slide-ctrl-btn:hover { border-color: var(--border-active); color: var(--text); }
 .slide-ctrl-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 .slide-counter { font-size: 13px; color: var(--text-secondary); min-width: 48px; text-align: center; }
-.slide-toc { display: flex; gap: 3px; padding: 5px 10px; overflow-x: auto; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); scroll-behavior: smooth; }
-.slide-toc.hidden { display: none; }
-.slide-toc-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; border-radius: 4px; background: var(--border); border: none; cursor: pointer; font-size: 9px; color: var(--text-muted); transition: all 0.15s; padding: 2px 4px; min-width: 22px; line-height: 1.1; }
+/* Left slide directory panel */
+.slide-toc-panel { position: fixed; left: 0; top: 0; width: 180px; height: 100dvh; background: rgba(15,7,32,0.95); border-right: 1px solid var(--border); z-index: 310; transform: translateX(-100%); transition: transform 0.25s ease; overflow-y: auto; overflow-x: hidden; padding: 10px 6px; display: flex; flex-direction: column; gap: 3px; }
+.slide-toc-panel.show { transform: translateX(0); }
+.slide-toc-item { display: flex; align-items: center; gap: 6px; border-radius: var(--radius-sm); background: rgba(255,255,255,0.05); border: none; cursor: pointer; font-size: 12px; color: var(--text-secondary); transition: all 0.15s; padding: 7px 8px; text-align: left; width: 100%; font-family: inherit; }
 .slide-toc-item:hover { background: rgba(255,255,255,0.15); color: var(--text); }
 .slide-toc-item.current { background: var(--primary); color: #fff; }
-.slide-toc-item.section-start { border-left: 2px solid var(--amber); }
-.slide-toc-item .toc-num { font-size: 8px; opacity: 0.6; }
-.slide-toc-item .toc-label { font-size: 10px; font-weight: 600; }
+.slide-toc-item.section-start { border-left: 3px solid var(--amber); padding-left: 5px; }
+.slide-toc-item .toc-num { font-size: 10px; opacity: 0.6; min-width: 20px; text-align: center; flex-shrink: 0; }
+.slide-toc-item .toc-label { font-size: 11px; font-weight: 500; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .slide-toc-item.current .toc-num { opacity: 1; }
+@media (max-width: 420px) { .slide-toc-panel { width: 150px; } }
 
 .slide-audio-bar { display: none; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); gap: 8px; }
 .slide-audio-bar.show { display: flex; }
@@ -324,7 +326,7 @@ input, textarea, select, button { font-family: inherit; }
         <button class="slide-ctrl-btn" onclick="closeSlideshow(true)" style="color:var(--amber);">返回编辑</button>
         <button class="slide-ctrl-btn" id="btn-close-slideshow" onclick="closeSlideshow(false)" style="color:var(--error);">关闭</button>
     </div>
-    <div class="slide-toc" id="slide-toc"><div id="slide-toc-list" style="display:flex;gap:4px;"></div></div>
+    <div class="slide-toc-panel" id="slide-toc-panel"><div id="slide-toc-list" style="display:flex;flex-direction:column;gap:3px;width:100%;"></div></div>
 </div>
 
 <!-- Side panel (desktop only) -->
@@ -2038,7 +2040,7 @@ function buildSlides(data) {
     // 9. 牧师证道 — each sermon: title + verses split into pages (up to 2 sentences)
     [data.sermon1, data.sermon2].forEach((sermon, idx) => {
         if (!sermon) return;
-        const label = '牧师证道 — 第' + (idx === 0 ? '一' : '二') + '讲';
+        const label = '证道 第' + (idx === 0 ? '一' : '二') + '讲';
         const lines = sermon.split('\n').filter(l => l.trim());
         const firstLine = lines[0] || '';
         const verseLines = lines.length > 1 ? lines.slice(1) : [];
@@ -2209,7 +2211,7 @@ function renderSlide() {
             html = `<div class="s-body" style="margin-top:0;font-size:calc(clamp(27px,5.5vw,80px) * var(--fs-scale));">${esc(s.text)}</div>`;
             break;
         case 'sermon':
-            html = `<div class="s-title">牧师证道</div><div class="s-subtitle">${esc(s.ref)}</div><div class="s-body">${esc(s.text)}</div>`;
+            html = `<div class="s-title">证道</div><div class="s-subtitle">${esc(s.ref)}</div><div class="s-body">${esc(s.text)}</div>`;
             break;
         case 'sermon-verse':
             html = `<div class="s-subtitle" style="margin-top:0;">${esc(s.label)}</div><div class="s-body" style="margin-top:8px;font-size:${autoVerseFontSize(s.text)};">${esc(s.text)}</div>`;
@@ -2352,7 +2354,8 @@ function buildToc() {
 
 function toggleToc() {
     tocVisible = !tocVisible;
-    document.getElementById('slide-toc').classList.toggle('hidden', !tocVisible);
+    const panel = document.getElementById('slide-toc-panel');
+    if (panel) panel.classList.toggle('show', tocVisible);
 }
 
 function goToSection(tocIndex) {
@@ -2375,7 +2378,7 @@ function updateTocHighlight() {
     }
     const items = document.querySelectorAll('.slide-toc-item');
     items.forEach((el, i) => {
-        el.classList.toggle('active', i === activeIndex);
+        el.classList.toggle('current', i === activeIndex);
     });
     // Auto-scroll TOC to keep active item visible
     if (activeIndex >= 0 && items[activeIndex]) {
@@ -2387,7 +2390,7 @@ function nextSlide() { if (currentSlide < slides.length - 1) { currentSlide++; r
 function prevSlide() { if (currentSlide > 0) { currentSlide--; renderSlide(); } }
 function closeSlideshow(backToEdit) {
     document.getElementById('slideshow-overlay').classList.remove('show');
-    const toc = document.getElementById('slide-toc'); if (toc) toc.classList.remove('hidden');
+    const panel = document.getElementById('slide-toc-panel'); if (panel) panel.classList.remove('show');
     document.getElementById('side-panel').style.display = '';
     const cb = document.getElementById('chalk-input-bar'); if (cb) cb.style.display = 'none';
     const cp = document.getElementById('chalk-props-bar'); if (cp) cp.style.display = 'none';
@@ -3370,7 +3373,7 @@ async function generatePPT() {
                     slide.addText(s.text, { x: 1.5, y: 0.8, w: 10.333, h: 6, fontSize: 24, color: W, align: 'center', valign: 'middle', fontFace: 'Microsoft YaHei', lineSpacing: 38 });
                     break;
                 case 'sermon':
-                    secTitle(slide, '牧师证道');
+                    secTitle(slide, '证道');
                     slide.addText(s.ref, { x: 1, y: 2.0, w: 11.333, h: 0.8, fontSize: 22, color: G, align: 'center', fontFace: 'Microsoft YaHei' });
                     slide.addText(s.text, { x: 1, y: 3.0, w: 11.333, h: 3, fontSize: 28, color: W, align: 'center', fontFace: 'Microsoft YaHei', lineSpacing: 44 });
                     break;
