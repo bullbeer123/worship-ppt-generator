@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="elder-mode">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -207,6 +207,41 @@ input, textarea, select, button { font-family: inherit; }
 .ai-badge { display: inline-block; font-size: 11px; padding: 1px 10px; border-radius: 10px; margin-left: 8px; vertical-align: middle; font-weight: 500; transition: all 0.3s; }
 .ai-badge-on { background: var(--success-bg); color: var(--success); }
 .ai-badge-off { background: var(--error-bg); color: var(--error); }
+
+/* ============ Elder Mode ============ */
+html.elder-mode body { font-size: 18px; line-height: 1.8; }
+html.elder-mode .app { max-width: 620px; padding: 28px 20px 48px; gap: 26px; }
+html.elder-mode .header h1 { font-size: 28px; }
+html.elder-mode .header p { font-size: 16px; }
+html.elder-mode .section { padding: 24px; gap: 18px; border-radius: 14px; }
+html.elder-mode .section-title { font-size: 18px; }
+html.elder-mode .paste-area { min-height: 300px; font-size: 17px; padding: 20px; line-height: 2; }
+html.elder-mode .btn { min-height: 56px; font-size: 17px; padding: 14px 22px; border-radius: 10px; }
+html.elder-mode .btn-ghost { font-size: 15px; padding: 12px 16px; }
+html.elder-mode .hint { font-size: 15px; }
+html.elder-mode .field-card { padding: 14px 0; }
+html.elder-mode .field-label { font-size: 16px; min-width: 68px; }
+html.elder-mode .field-value input,
+html.elder-mode .field-value textarea { font-size: 16px; padding: 10px 14px; }
+html.elder-mode .field-value .field-val { font-size: 16px; }
+html.elder-mode .field-value .field-val-sm { font-size: 14px; }
+html.elder-mode .badge { font-size: 12px; padding: 3px 10px; }
+html.elder-mode .toast { font-size: 16px; padding: 12px 24px; }
+html.elder-mode .slide-toc-panel { width: 210px; }
+html.elder-mode .slide-toc-item { padding: 10px 8px; font-size: 14px; }
+html.elder-mode .slide-toc-item .toc-label { font-size: 13px; }
+html.elder-mode .slide-ctrl-btn { font-size: 15px; padding: 10px 16px; }
+html.elder-mode .slide-counter { font-size: 15px; }
+html.elder-mode .side-btn { font-size: 14px; padding: 12px; min-width: 60px; }
+html.elder-mode .btn-ghost-sm { font-size: 13px; padding: 8px 14px; }
+html.elder-mode .auto-toggle { font-size: 15px; }
+html.elder-mode .history-box summary { font-size: 16px; }
+html.elder-mode .hist-title { font-size: 14px; }
+html.elder-mode .hist-restore { font-size: 13px; padding: 6px 12px; }
+html.elder-mode .side-label { font-size: 15px; }
+html.elder-mode .side-hint { font-size: 11px; }
+.eldermode-toggle { font-size: 13px; color: var(--text-muted); cursor: pointer; user-select: none; text-decoration: underline; text-underline-offset: 3px; }
+.eldermode-toggle:hover { color: var(--text); }
 </style>
 </head>
 <body>
@@ -215,7 +250,7 @@ input, textarea, select, button { font-family: inherit; }
     <!-- Header -->
     <div class="header">
         <h1>主日礼拜PPT生成器</h1>
-        <p>粘贴内容，一键生成幻灯片</p>
+        <p>粘贴内容，一键生成幻灯片 <span class="eldermode-toggle" id="eldermode-link" onclick="toggleElderMode()">👴 老年版</span></p>
     </div>
 
     <!-- Screen 1: Input -->
@@ -3125,6 +3160,15 @@ window.addEventListener('DOMContentLoaded', () => {
         const cb = document.getElementById('auto-parse-toggle');
         if (cb) cb.checked = _autoParseEnabled;
     } catch (e) {}
+    // 老年版初始化：默认开启（html 已有 class="elder-mode"），localStorage 为 '0' 时关闭
+    try {
+        const em = localStorage.getItem('wpg_elder_mode');
+        if (em === '0') {
+            document.documentElement.classList.remove('elder-mode');
+            const link = document.getElementById('eldermode-link');
+            if (link) link.textContent = '👓 标准版';
+        }
+    } catch (e) {}
     // 尝试自动恢复自定义页面（不依赖点击恢复按钮）
     try {
         const raw = localStorage.getItem(RECORD_KEY);
@@ -3475,6 +3519,14 @@ function resetAll() {
     nextElId = 1;
     renderCPList();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleElderMode() {
+    const html = document.documentElement;
+    const on = html.classList.toggle('elder-mode');
+    const link = document.getElementById('eldermode-link');
+    if (link) link.textContent = on ? '👴 老年版' : '👓 标准版';
+    try { localStorage.setItem('wpg_elder_mode', on ? '1' : '0'); } catch (e) {}
 }
 
 function showToast(msg, isError = false) {
