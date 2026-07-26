@@ -167,6 +167,25 @@ input, textarea, select, button { font-family: inherit; }
 
 /* Verification dashboard */
 .verify-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 8px; }
+
+/* Auto-parse toggle */
+.auto-toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); cursor: pointer; user-select: none; margin-top: 2px; }
+.auto-toggle input { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+#parse-hint.parsing { color: var(--primary); }
+
+/* History box */
+.history-box { border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; background: rgba(255,255,255,0.02); margin-top: 2px; }
+.history-box summary { font-size: 14px; font-weight: 600; cursor: pointer; color: var(--text-secondary); list-style: none; padding: 2px 0; outline: none; }
+.history-box summary::-webkit-details-marker { display: none; }
+.history-box summary::before { content: '\25B8'; margin-right: 6px; font-size: 11px; color: var(--text-muted); }
+.history-box[open] summary::before { content: '\25BE'; }
+.history-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.hist-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.hist-title { flex: 1; min-width: 0; font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hist-time { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.hist-restore { font-size: 12px; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--primary); background: transparent; color: var(--primary); cursor: pointer; flex-shrink: 0; transition: all 0.15s; }
+.hist-restore:hover { background: var(--primary); color: #fff; }
+.hist-empty { font-size: 13px; color: var(--text-muted); padding: 8px 0; text-align: center; }
 .verify-item.has-warn { border-color: rgba(240,160,32,0.3); }
 .verify-item.has-err { border-color: rgba(240,80,80,0.3); }
 .verify-item-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
@@ -203,7 +222,7 @@ input, textarea, select, button { font-family: inherit; }
             <span class="section-title">礼拜内容</span>
             <span class="ai-badge ai-badge-off" id="ai-badge">检测AI中</span>
         </div>
-        <textarea class="paste-area" id="paste-area" placeholder="把手机备忘录里的文字直接粘贴到这里...&#10;&#10;格式示例：&#10;Sundayworship2026.6.7&#10;上周：...&#10;赛66：12-24赐给存留者的应许&#10;赞美：91二十四小时呼吁&#10;诗篇：23篇&#10;新编赞美：54心向主宝座歌&#10;论坛：..."></textarea>
+        <textarea class="paste-area" id="paste-area" placeholder="把手机备忘录里的文字直接粘贴到这里...&#10;&#10;格式示例：&#10;Sundayworship2026.6.7&#10;上周：...&#10;赛66：12-24赐给存留者的应许&#10;赞美：91二十四小时呼吁&#10;诗篇：23篇&#10;新编赞美：54心向主宝座歌&#10;论坛：..." oninput="onPasteInput()"></textarea>
         <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoUpload(this)">
         <div class="btn-grid">
             <button class="btn btn-amber" onclick="oneClickGenerate()">帮我做</button>
@@ -213,7 +232,12 @@ input, textarea, select, button { font-family: inherit; }
             <button class="btn btn-outline" onclick="openPhotoCapture()">拍照识别</button>
             <button class="btn btn-ghost" onclick="restoreLastRecord()">恢复记录</button>
         </div>
-        <div class="hint">按「帮我做」自动完成解析、搜索歌词音频、生成幻灯片</div>
+        <div class="hint" id="parse-hint">按「帮我做」自动完成解析、搜索歌词音频、生成幻灯片</div>
+        <label class="auto-toggle"><input type="checkbox" id="auto-parse-toggle" checked onchange="toggleAutoParse()"> 粘贴后自动解析</label>
+        <details class="history-box" id="history-box">
+            <summary>📚 历史记录（最近 5 次）</summary>
+            <div class="history-list" id="history-list"></div>
+        </details>
     </div>
 
     <!-- Screen 2: Review & Edit (hidden initially) -->
@@ -869,6 +893,7 @@ async function oneClickGenerate() {
         }
         loadFixedSongAudioById('praise-welcome','5b00f970605d87b30340f3b2487b0387','你原来是宝贵的');
         loadFixedSongAudioById('praise-final','5b00f970605d87b30340f5467f65e853','主啊，在我人生中');
+        saveHistory();
         showPhotoLoading(true, '生成验证...');
         showVerify();
         showPhotoLoading(false);
@@ -881,10 +906,12 @@ async function oneClickGenerate() {
 }
 
 // ============ Side Panel: 一键匹配 ============
-async function parseFromSidePanel() {
+async function parseFromSidePanel(isAuto = false) {
     const raw = document.getElementById('paste-area').value.trim();
-    if (!raw) { showToast('请先在上方粘贴礼拜内容', true); return; }
-    showPhotoLoading(true, '解析文字...');
+    if (!raw) { if (!isAuto) showToast('请先在上方粘贴礼拜内容', true); return; }
+    const hint = document.getElementById('parse-hint');
+    const setHint = (t, parsing) => { if (hint) { hint.textContent = t; hint.classList.toggle('parsing', !!parsing); } };
+    if (isAuto) setHint('自动解析中…', true); else showPhotoLoading(true, '解析文字...');
     try {
         document.getElementById('edit-section').style.display = 'none';
         await parseText();
@@ -897,7 +924,8 @@ async function parseFromSidePanel() {
         if (document.getElementById('f-sermon2').value.trim()) tasks.push({kind:'sermon',type:'sermon2'});
         let audioOk=0,audioFail=0,bibleOk=0,bibleFail=0;
         if (tasks.length > 0) {
-            showPhotoLoading(true, tasks.length+'项并行搜索...');
+            if (isAuto) setHint('自动解析中…（搜索 ' + tasks.length + ' 项）', true);
+            else showPhotoLoading(true, tasks.length+'项并行搜索...');
             const results = await Promise.allSettled(tasks.map(t=>{
                 if(t.kind==='audio')return fetchLyricsSilent(t.type);
                 if(t.kind==='psalm')return fetchPsalmSilent();
@@ -920,16 +948,118 @@ async function parseFromSidePanel() {
         let msg='一键匹配完成';
         if(parts.length>0)msg+='：'+parts.join('、')+'已获取';
         if(fp.length>0)msg+='，'+fp.join('、')+'未找到';
-        showPhotoLoading(false);
-        showToast(msg);
-        setTimeout(()=>document.getElementById('edit-section').scrollIntoView({behavior:'smooth',block:'start'}),300);
         loadFixedSongAudioById('praise-welcome','5b00f970605d87b30340f3b2487b0387','你原来是宝贵的');
         loadFixedSongAudioById('praise-final','5b00f970605d87b30340f5467f65e853','主啊，在我人生中');
+        saveHistory();
+        if (isAuto) {
+            document.getElementById('edit-section').style.display = 'block';
+            _lastAutoParsedRaw = document.getElementById('paste-area').value.trim();
+            setHint('已自动解析 · 可点「生成幻灯片」或下方按钮核对');
+        } else {
+            showPhotoLoading(false);
+            showToast(msg);
+            setTimeout(()=>document.getElementById('edit-section').scrollIntoView({behavior:'smooth',block:'start'}),300);
+        }
     } catch(err) {
         console.error('一键匹配出错:', err);
-        showPhotoLoading(false);
-        showToast('匹配出错: ' + err.message, true);
+        if (isAuto) setHint('自动解析失败，请点「一键匹配」手动重试');
+        else { showPhotoLoading(false); showToast('匹配出错: ' + err.message, true); }
     }
+}
+
+// ============ Auto-parse (debounced) ============
+let _autoParseTimer = null;
+let _lastAutoParsedRaw = '';
+let _autoParseEnabled = true;
+
+function onPasteInput() {
+    if (!_autoParseEnabled) return;
+    const raw = document.getElementById('paste-area').value.trim();
+    if (!raw) return;
+    if (raw === _lastAutoParsedRaw) return; // 内容无变化，跳过
+    clearTimeout(_autoParseTimer);
+    _autoParseTimer = setTimeout(() => {
+        const cur = document.getElementById('paste-area').value.trim();
+        if (!cur || cur === _lastAutoParsedRaw) return;
+        parseFromSidePanel(true);
+    }, 800);
+}
+
+function toggleAutoParse() {
+    const cb = document.getElementById('auto-parse-toggle');
+    _autoParseEnabled = cb ? cb.checked : true;
+    try { localStorage.setItem('wpg_auto_parse', _autoParseEnabled ? '1' : '0'); } catch (e) {}
+    const hint = document.getElementById('parse-hint');
+    if (!hint) return;
+    if (!_autoParseEnabled) {
+        hint.textContent = '已关闭自动解析 · 粘贴后点「解析内容」或「帮我做」';
+        hint.classList.remove('parsing');
+    } else if (hint.textContent.indexOf('已关闭') === 0) {
+        hint.textContent = '按「帮我做」自动完成解析、搜索歌词音频、生成幻灯片';
+    }
+}
+
+// ============ History (last 5) ============
+const HISTORY_KEY = 'wpg_history';
+const HISTORY_FIELDS = ['f-lastweek','f-date','f-praise1','f-praise2','f-praise1-lyrics','f-praise2-lyrics','f-special','f-special-lyrics','f-psalm','f-psalm-content','f-hymn1','f-hymn2','f-hymn1-lyrics','f-hymn2-lyrics','f-sermon1','f-sermon2','f-forum','f-declaration'];
+const LYRIC_GROUPS = { 'f-praise1-lyrics':'praise1-lyrics-group', 'f-praise2-lyrics':'praise2-lyrics-group', 'f-special-lyrics':'special-lyrics-group', 'f-hymn1-lyrics':'hymn1-lyrics-group', 'f-hymn2-lyrics':'hymn2-lyrics-group' };
+
+function saveHistory() {
+    try {
+        const raw = document.getElementById('paste-area').value.trim();
+        if (!raw) return;
+        const item = { ts: Date.now(), raw: raw, fields: {} };
+        HISTORY_FIELDS.forEach(id => { const el = document.getElementById(id); if (el) item.fields[id] = el.value; });
+        let hist = [];
+        try { hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (e) {}
+        if (!Array.isArray(hist)) hist = [];
+        hist = hist.filter(h => h.raw !== raw); // 同内容去重
+        hist.unshift(item);
+        hist = hist.slice(0, 5);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+        renderHistory();
+    } catch (e) {}
+}
+
+function renderHistory() {
+    const box = document.getElementById('history-list');
+    if (!box) return;
+    let hist = [];
+    try { hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (e) {}
+    if (!Array.isArray(hist) || hist.length === 0) { box.innerHTML = '<div class="hist-empty">暂无历史记录</div>'; return; }
+    box.innerHTML = hist.map(h => {
+        const d = new Date(h.ts);
+        const t = (d.getMonth()+1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+        const title = (h.fields['f-date']||'').trim() || (h.fields['f-praise1']||'').trim().slice(0,14) || (h.raw||'').slice(0,14) || '未命名';
+        const esc = title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        return '<div class="hist-item"><span class="hist-title" title="'+esc+'">'+esc+'</span><span class="hist-time">'+t+'</span><button class="hist-restore" onclick="restoreHistory('+h.ts+')">恢复</button></div>';
+    }).join('');
+}
+
+function restoreHistory(ts) {
+    try {
+        let hist = [];
+        try { hist = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (e) {}
+        const h = hist.find(x => x.ts === ts);
+        if (!h) { showToast('历史记录不存在', true); return; }
+        document.getElementById('paste-area').value = h.raw || '';
+        Object.entries(h.fields || {}).forEach(([id, val]) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || '';
+        });
+        Object.entries(LYRIC_GROUPS).forEach(([fid, gid]) => {
+            const fEl = document.getElementById(fid);
+            const gEl = document.getElementById(gid);
+            if (gEl) gEl.style.display = (fEl && fEl.value.trim()) ? 'block' : 'none';
+        });
+        const pc = document.getElementById('f-psalm-content');
+        const pcg = document.getElementById('psalm-content-group');
+        if (pcg) pcg.style.display = (pc && pc.value.trim()) ? 'block' : 'none';
+        document.getElementById('edit-section').style.display = 'block';
+        _lastAutoParsedRaw = (h.raw || '').trim(); // 防止恢复后误触发重解析
+        showToast('已恢复历史记录');
+        document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) { console.error('恢复历史出错:', e); }
 }
 
 // 静默获取诗篇经文（不操作按钮UI）
@@ -2961,6 +3091,14 @@ function showAlertDialog(title, message) {
 // Check on page load
 window.addEventListener('DOMContentLoaded', () => {
     checkRestoreBar();
+    renderHistory();
+    // 初始化自动解析开关状态
+    try {
+        const ap = localStorage.getItem('wpg_auto_parse');
+        _autoParseEnabled = (ap !== '0');
+        const cb = document.getElementById('auto-parse-toggle');
+        if (cb) cb.checked = _autoParseEnabled;
+    } catch (e) {}
     // 尝试自动恢复自定义页面（不依赖点击恢复按钮）
     try {
         const raw = localStorage.getItem(RECORD_KEY);
