@@ -1909,6 +1909,27 @@ function collectSlideData() {
     };
 }
 
+// Split text into pages by sentence delimiters, max N sentences per page
+function splitVerseToPages(text, maxPerPage) {
+    maxPerPage = maxPerPage || 3;
+    if (!text || !text.trim()) return [];
+    // Split on Chinese sentence-ending punctuation, keeping the delimiter
+    const parts = text.split(/(?<=[。！？；])/g);
+    const sentences = [];
+    for (var i = 0; i < parts.length; i++) {
+        var s = parts[i].trim();
+        if (s) sentences.push(s);
+    }
+    // If no delimiters found, treat whole text as one page
+    if (sentences.length === 0) return [text.trim()];
+    var pages = [];
+    for (var j = 0; j < sentences.length; j += maxPerPage) {
+        pages.push(sentences.slice(j, j + maxPerPage).join(''));
+    }
+    // Filter empty pages and trim
+    return pages.map(function(p) { return p.trim(); }).filter(function(p) { return p; });
+}
+
 function buildSlides(data) {
     const slides = [];
     const tocSections = []; // { name, slideIndex }
@@ -1950,14 +1971,14 @@ function buildSlides(data) {
     // 3. 请起立 + 约4:24 (FIXED)
     slides.push({ type: 'stand-up-fixed' });
 
-    // 4. 诵读经文 — 1 verse per slide
+    // 4. 诵读经文 — up to 3 sentences per slide
     if (data.psalmContent) {
         const psalmLabel = data.psalm ? '诗篇 ' + data.psalm + '篇' : '经文诵读';
         slides.push({ type: 'psalm-title', label: psalmLabel, section: psalmLabel });
         tocSections.push({ name: psalmLabel, slideIndex: slides.length - 1 });
-        const verses = data.psalmContent.split('\n').filter(v => v.trim());
-        verses.forEach(verse => {
-            slides.push({ type: 'psalm-content', label: psalmLabel, text: verse });
+        const versePages = splitVerseToPages(data.psalmContent, 3);
+        versePages.forEach(page => {
+            slides.push({ type: 'psalm-content', label: psalmLabel, text: page });
         });
     } else if (data.psalm) {
         const psalmLabel = '诗篇 ' + data.psalm + '篇';
@@ -2014,7 +2035,7 @@ function buildSlides(data) {
         }
     }
 
-    // 9. 牧师证道 — each sermon: title + verses split into pages
+    // 9. 牧师证道 — each sermon: title + verses split into pages (up to 2 sentences)
     [data.sermon1, data.sermon2].forEach((sermon, idx) => {
         if (!sermon) return;
         const label = '牧师证道 — 第' + (idx === 0 ? '一' : '二') + '讲';
@@ -2024,9 +2045,11 @@ function buildSlides(data) {
         slides.push({ type: 'sermon', ref: label, text: firstLine, section: label });
         tocSections.push({ name: label, slideIndex: slides.length - 1 });
         if (verseLines.length > 0) {
-            for (const verse of verseLines) {
-                slides.push({ type: 'sermon-verse', label: label, text: verse });
-            }
+            const verseText = verseLines.join('');
+            const versePages = splitVerseToPages(verseText, 2);
+            versePages.forEach(page => {
+                slides.push({ type: 'sermon-verse', label: label, text: page });
+            });
         }
         // 板书功能暂停
         // slides.push({ type: 'sermon-chalkboard', label: label + ' 板书', text: '', chalkElements: [] });
@@ -3274,6 +3297,21 @@ async function generatePPT() {
         let pptCoverImg = coverImgUrl ? await blobUrlToDataUrl(coverImgUrl) : null;
         let pptEndingImg = endingImgUrl ? await blobUrlToDataUrl(endingImgUrl) : null;
 
+        // Pre-load meditation audio as base64 for PPT first-page embed
+        let meditationAudioData = null;
+        try {
+            const audioResp = await fetch('audio/meditation.mp3');
+            if (audioResp.ok) {
+                const audioBlob = await audioResp.blob();
+                meditationAudioData = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(audioBlob);
+                });
+            }
+        } catch (e) { console.warn('默想音频加载失败:', e); }
+
         const data = collectSlideData();
         const slidesArr = buildSlides(data);
         const pptx = new PptxGenJS();
@@ -3292,6 +3330,10 @@ async function generatePPT() {
                     slide.addText('上周回顾', { x: 0.5, y: 0.8, w: 12.333, h: 0.7, fontSize: 22, color: G, align: 'center', fontFace: 'Microsoft YaHei' });
                     slide.addText(d.lastweek || '', { x: 1, y: 1.8, w: 11.333, h: 4.5, fontSize: 22, color: W, align: 'center', valign: 'middle', fontFace: 'Microsoft YaHei', lineSpacing: 34 });
                     if (d.declaration) slide.addText(d.declaration, { x: 1, y: 5.8, w: 11.333, h: 1.2, fontSize: 14, color: G, align: 'center', valign: 'bottom', fontFace: 'Microsoft YaHei', lineSpacing: 22 });
+                    // 嵌入礼拜前默想音频
+                    if (meditationAudioData) {
+                        try { slide.addAudio({ data: meditationAudioData, type: 'audio' }); } catch (e) { console.warn('PPT音频嵌入失败:', e); }
+                    }
                     break;
                 }
                 case 'date-title': {
@@ -3310,7 +3352,7 @@ async function generatePPT() {
                     break;
                 case 'psalm-title': secTitle(slide, s.label); break;
                 case 'psalm-content':
-                    slide.addText(s.text, { x: 1, y: 1, w: 11.333, h: 5.5, fontSize: 32, color: W, align: 'center', valign: 'middle', fontFace: 'Microsoft YaHei', lineSpacing: 48 });
+                    slide.addText(s.text, { x: 1, y: 1, w: 11.333, h: 5.5, fontSize: 38, color: W, align: 'center', valign: 'middle', fontFace: 'Microsoft YaHei', lineSpacing: 54 });
                     break;
                 case 'hymn':
                     secTitle(slide, s.label);
@@ -3333,7 +3375,7 @@ async function generatePPT() {
                     slide.addText(s.text, { x: 1, y: 3.0, w: 11.333, h: 3, fontSize: 28, color: W, align: 'center', fontFace: 'Microsoft YaHei', lineSpacing: 44 });
                     break;
                 case 'sermon-verse':
-                    slide.addText(s.text, { x: 1, y: 1, w: 11.333, h: 5.5, fontSize: 28, color: W, align: 'center', valign: 'middle', fontFace: 'Microsoft YaHei', lineSpacing: 44 });
+                    slide.addText(s.text, { x: 1, y: 1, w: 11.333, h: 5.5, fontSize: 36, color: W, align: 'center', valign: 'middle', fontFace: 'Microsoft YaHei', lineSpacing: 52 });
                     break;
                 case 'sermon-chalkboard':
                     slide.background = { color: '1A1A1A' };
