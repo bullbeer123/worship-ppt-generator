@@ -3335,7 +3335,7 @@ async function generatePPT() {
                     if (d.declaration) slide.addText(d.declaration, { x: 1, y: 5.8, w: 11.333, h: 1.2, fontSize: 14, color: G, align: 'center', valign: 'bottom', fontFace: 'Microsoft YaHei', lineSpacing: 22 });
                     // 嵌入礼拜前默想音频
                     if (meditationAudioData) {
-                        try { slide.addAudio({ data: meditationAudioData, type: 'audio' }); } catch (e) { console.warn('PPT音频嵌入失败:', e); }
+                        try { slide.addMedia({ type: 'audio', data: meditationAudioData }); } catch (e) { console.warn('PPT音频嵌入失败:', e); }
                     }
                     break;
                 }
