@@ -3402,6 +3402,10 @@ async function generatePPT() {
                 case 'hymn':
                     secTitle(slide, s.label);
                     slide.addText(s.text, { x: 1, y: 2.5, w: 11.333, h: 2, fontSize: 36, color: W, align: 'center', bold: true, fontFace: 'Microsoft YaHei' });
+                    // 嵌入赞美音频到PPT（用原始URL，pptxgenjs内部fetch）
+                    if (s.audioKey && audioFiles[s.audioKey] && audioFiles[s.audioKey].url && !audioFiles[s.audioKey].url.startsWith('blob:')) {
+                        try { slide.addMedia({ type: 'audio', path: audioFiles[s.audioKey].url }); } catch(e) {}
+                    }
                     break;
                 case 'creed-title':
                     secTitle(slide, '信仰告白');
