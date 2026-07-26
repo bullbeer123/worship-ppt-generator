@@ -1978,7 +1978,7 @@ function buildSlides(data) {
         const psalmLabel = data.psalm ? '诗篇 ' + data.psalm + '篇' : '经文诵读';
         slides.push({ type: 'psalm-title', label: psalmLabel, section: psalmLabel });
         tocSections.push({ name: psalmLabel, slideIndex: slides.length - 1 });
-        const versePages = splitVerseToPages(data.psalmContent, 3);
+        const versePages = splitVerseToPages(data.psalmContent, 2);
         versePages.forEach(page => {
             slides.push({ type: 'psalm-content', label: psalmLabel, text: page });
         });
@@ -2196,7 +2196,7 @@ function renderSlide() {
             html = `<div class="s-title">${esc(s.label)}</div>`;
             break;
         case 'psalm-content':
-            html = `<div class="s-body" style="margin-top:0;font-size:${autoVerseFontSize(s.text)};">${esc(s.text)}</div>`;
+            html = `<div class="s-body" style="margin-top:0;font-size:calc(clamp(27px,5.5vw,80px) * var(--fs-scale));">${esc(s.text)}</div>`;
             break;
         case 'hymn':
             html = `<div class="s-title">${esc(s.label)}</div><div class="s-body" style="font-size:calc(clamp(27px,5.5vw,80px) * var(--fs-scale));">${esc(s.text)}</div>`;
@@ -2214,7 +2214,7 @@ function renderSlide() {
             html = `<div class="s-title">证道</div><div class="s-subtitle">${esc(s.ref)}</div><div class="s-body">${esc(s.text)}</div>`;
             break;
         case 'sermon-verse':
-            html = `<div class="s-subtitle" style="margin-top:0;">${esc(s.label)}</div><div class="s-body" style="margin-top:8px;font-size:${autoVerseFontSize(s.text)};">${esc(s.text)}</div>`;
+            html = `<div class="s-subtitle" style="margin-top:0;">${esc(s.label)}</div><div class="s-body" style="margin-top:8px;font-size:calc(clamp(27px,5.5vw,80px) * var(--fs-scale));">${esc(s.text)}</div>`;
             break;
         case 'sermon-chalkboard':
             var chalkEls = s.chalkElements || [];
@@ -3355,7 +3355,7 @@ async function generatePPT() {
                     break;
                 case 'psalm-title': secTitle(slide, s.label); break;
                 case 'psalm-content':
-                    slide.addText(s.text, { x: 1, y: 1, w: 11.333, h: 5.5, fontSize: 38, color: W, align: 'center', valign: 'middle', fontFace: 'Microsoft YaHei', lineSpacing: 54 });
+                    slide.addText(s.text, { x: 1, y: 1, w: 11.333, h: 5.5, fontSize: 24, color: W, align: 'center', valign: 'middle', fontFace: 'Microsoft YaHei', lineSpacing: 40 });
                     break;
                 case 'hymn':
                     secTitle(slide, s.label);
@@ -3378,7 +3378,7 @@ async function generatePPT() {
                     slide.addText(s.text, { x: 1, y: 3.0, w: 11.333, h: 3, fontSize: 28, color: W, align: 'center', fontFace: 'Microsoft YaHei', lineSpacing: 44 });
                     break;
                 case 'sermon-verse':
-                    slide.addText(s.text, { x: 1, y: 1, w: 11.333, h: 5.5, fontSize: 36, color: W, align: 'center', valign: 'middle', fontFace: 'Microsoft YaHei', lineSpacing: 52 });
+                    slide.addText(s.text, { x: 1, y: 1, w: 11.333, h: 5.5, fontSize: 24, color: W, align: 'center', valign: 'middle', fontFace: 'Microsoft YaHei', lineSpacing: 40 });
                     break;
                 case 'sermon-chalkboard':
                     slide.background = { color: '1A1A1A' };
