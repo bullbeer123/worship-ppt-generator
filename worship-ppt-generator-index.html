@@ -657,10 +657,17 @@ async function downloadAllAudio() {
         const info = audioFiles[type];
         if (!info || !info.url || info.isLocalFile || info.url.startsWith('blob:')) continue;
         count++;
-        setTimeout(() => window.open(info.url, '_blank'), count * 500);
+        setTimeout(() => {
+            const a = document.createElement('a');
+            a.href = info.url;
+            a.download = (document.getElementById('f-'+type).value.trim().replace(/^\d+[\s.、,，]*/,'')||'song') + '.mp3';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }, count * 800);
     }
-    if (count === 0) showToast('📎 没有需要下载的远程音频');
-    else showToast('⬇ 正在打开 ' + count + ' 个下载窗口，请逐个右键保存');
+    if (count === 0) showToast('没有需要下载的远程音频');
+    else showToast('正在下载 ' + count + ' 首音频...');
 }
 
 // ============ Verification Dashboard ============
@@ -792,27 +799,18 @@ async function confirmVerify() {
 
 async function downloadAudio(type) {
     const info = audioFiles[type];
-    if (!info || !info.url) { showToast('⚠️ 请先搜索歌词获取音频链接', true); return; }
-    // 本地 blob 文件不需要下载
-    if (info.url.startsWith('blob:')) { showToast('📎 已是本地文件'); return; }
+    if (!info || !info.url) { showToast('请先搜索歌词获取音频链接', true); return; }
+    if (info.url.startsWith('blob:')) { showToast('已是本地文件'); return; }
     const songName = document.getElementById('f-' + type).value.trim().replace(/^\d+[\s.、,，]*/, '') || 'song';
     const filename = songName + '.mp3';
-    try {
-        showToast('⬇ 正在下载 ' + filename + '...');
-        const resp = await fetch(info.url);
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const blob = await resp.blob();
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        showToast('✅ 已下载：' + filename);
-    } catch (e) {
-        // 直接下载可能被CORS阻止，尝试window.open作为fallback
-        window.open(info.url, '_blank');
-        showToast('⚠️ 直接下载失败，已在新窗口打开，请右键另存为');
-    }
+    // 直接使用原始URL触发下载（不fetch，避免CORS失败）
+    const a = document.createElement('a');
+    a.href = info.url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('下载中：' + filename);
 }
 
 function onAudioSelected(key, input) {
