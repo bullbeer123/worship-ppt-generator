@@ -146,6 +146,20 @@ input, textarea, select, button { font-family: inherit; }
 .slide-toc-item.current .toc-num { opacity: 1; }
 @media (max-width: 420px) { .slide-toc-panel { width: 150px; } }
 
+/* LRC 歌词跟随（覆盖在幻灯片上的当前句，大字体便于观众跟唱） */
+.lrc-line { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: 88%; text-align: center; font-size: calc(clamp(32px, 6vw, 96px) * var(--fs-scale, 1)); color: #fff; font-weight: 700; line-height: 1.5; text-shadow: 0 2px 16px rgba(0,0,0,0.7); z-index: 15; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
+.lrc-line.show { opacity: 1; }
+.lrc-fade { animation: lrcFade 0.3s ease; }
+@keyframes lrcFade { from { opacity: 0.3; } to { opacity: 1; } }
+/* 歌谱视图 */
+.gepu-view { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(92vw, 1200px); height: 88dvh; background: #fff; border-radius: 8px; z-index: 320; overflow: hidden; box-shadow: 0 8px 48px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
+.gepu-view img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.gepu-close { position: absolute; top: 12px; right: 16px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 20px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
+/* 投屏模式：全屏时控制栏 idle 自动隐藏 */
+.slide-overlay.show.auto-hide .slide-controls, .slide-overlay.show.auto-hide .slide-audio-bar, .slide-overlay.show.auto-hide .slide-toc-panel { opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+.slide-overlay.show .slide-controls, .slide-overlay.show .slide-audio-bar, .slide-overlay.show .slide-toc-panel { opacity: 1; transition: opacity 0.4s; }
+.slide-toc-panel { transition: transform 0.25s ease, opacity 0.4s; }
+
 .slide-audio-bar { display: none; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(26,16,48,0.95); border-top: 1px solid var(--border); gap: 8px; }
 .slide-audio-bar.show { display: flex; }
 .audio-name { font-size: 13px; color: var(--text-secondary); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -334,7 +348,7 @@ html.elder-mode .side-hint { font-size: 11px; }
 
 <!-- Slideshow overlay -->
 <div class="slide-overlay" id="slideshow-overlay">
-    <div class="slide-stage"><div class="slide-page" id="slide-page"></div></div>
+    <div class="slide-stage"><div class="slide-page" id="slide-page"></div><div class="lrc-line" id="lrc-line"></div><div class="gepu-view" id="gepu-view" style="display:none"><img id="gepu-img" alt="歌谱"><div class="gepu-close" onclick="toggleGepuView(false)">✕ 关闭歌谱</div></div></div>
     <div class="slide-audio-bar" id="slide-audio-bar">
         <div class="audio-name" id="audio-name"></div>
         <input type="range" class="audio-progress" id="audio-progress" min="0" max="100" value="0">
@@ -344,6 +358,7 @@ html.elder-mode .side-hint { font-size: 11px; }
     </div>
     <div class="slide-controls">
         <button class="slide-ctrl-btn" onclick="toggleToc()">目录</button>
+        <button class="slide-ctrl-btn" id="btn-gepu" onclick="toggleGepuView(true)" style="display:none">🎼 歌谱</button>
         <button class="slide-ctrl-btn" onclick="prevSlide()">上一页</button>
         <span class="slide-counter" id="slide-counter">1/1</span>
         <button class="slide-ctrl-btn" onclick="nextSlide()">下一页</button>
@@ -395,6 +410,28 @@ html.elder-mode .side-hint { font-size: 11px; }
 // ============ Audio Management ============
 const audioFiles = {};  // { praise1: { url, name }, praise2: ..., hymn1: ..., hymn2: ... }
 let currentAudio = null; // { key, audioElement }
+// LRC 歌词跟随：songMeta[type] = { lrc, gepuUrl, title }，lrcData[key] = [{t, text}]
+let songMeta = {};
+let lrcData = {};
+let lrcActiveKey = null;
+// 解析 LRC 时间戳歌词 → [{t: 秒, text: 歌词行}]
+function parseLrc(lrc) {
+    if (!lrc) return [];
+    const out = [];
+    const lines = String(lrc).split('\n');
+    for (const line of lines) {
+        const timeTags = line.match(/\[\d{1,2}:\d{2}(?:\.\d{1,3})?\]/g);
+        if (!timeTags) continue;
+        const text = line.replace(/\[\d{1,2}:\d{2}(?:\.\d{1,3})?\]/g, '').trim();
+        for (const tag of timeTags) {
+            const m = tag.match(/\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]/);
+            const t = parseInt(m[1]) * 60 + parseInt(m[2]) + parseFloat('0.' + (m[3] || '0'));
+            out.push({ t: t, text: text });
+        }
+    }
+    out.sort((a, b) => a.t - b.t);
+    return out;
+}
 // 强制将URL升级为https（解决HTTPS页面加载HTTP资源的mixed content问题）
 function ensureHttps(url) {
     if (!url) return url;
@@ -1659,6 +1696,18 @@ function lookupSongUrlFromDict(query) {
 
 async function getSongList() {
     if (songCache) return songCache;
+    // ★ 优先用 localStorage 持久化索引（1190首，一次拉取永久可用）
+    const INDEX_KEY = 'wpg_song_index_v1';
+    try {
+        const cached = localStorage.getItem(INDEX_KEY);
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 500) {
+                songCache = parsed;
+                return songCache;
+            }
+        }
+    } catch (e) {}
     const resp = await fetch(SONG_API + '/start/zanmei/sgbList');
     const json = await resp.json();
     if (json.code === 200 && json.rows) {
@@ -1666,7 +1715,52 @@ async function getSongList() {
     } else if (json.code === 200 && json.data) {
         songCache = json.data;
     }
+    // 持久化到 localStorage（压缩字段减少体积）
+    if (songCache && songCache.length > 0) {
+        try {
+            const slim = songCache.map(s => ({ id: s.id || s._id, shiji_index: s.shiji_index, xuhao: s.xuhao, title: s.title }));
+            localStorage.setItem(INDEX_KEY, JSON.stringify(slim));
+        } catch (e) {}
+    }
     return songCache || [];
+}
+
+// 按编号查询歌名（配合输入框自动补全）
+async function getSongNameByNumber(num, shijiFilter) {
+    try {
+        const list = await getSongList();
+        if (!list || list.length === 0) return '';
+        const n = String(num);
+        let candidates = list.filter(s => String(s.xuhao) === n);
+        if (shijiFilter !== null && shijiFilter !== undefined) {
+            const inShiji = candidates.filter(s => s.shiji_index === shijiFilter);
+            if (inShiji.length > 0) candidates = inShiji;
+        }
+        if (candidates.length === 0) return '';
+        return candidates[0].title || '';
+    } catch (e) { return ''; }
+}
+
+// 赞美/新编输入框：输入纯数字后自动补全歌名（"137" → "137 感谢的理由"）
+let _songAutoFillTimer = null;
+let _songAutoFillShiji = { praise1: 0, praise2: 0, special: null, hymn1: 2, hymn2: 2 };
+function setupSongAutoFill() {
+    ['praise1', 'praise2', 'special', 'hymn1', 'hymn2'].forEach(type => {
+        const el = document.getElementById('f-' + type);
+        if (!el) return;
+        el.addEventListener('input', () => {
+            clearTimeout(_songAutoFillTimer);
+            const raw = el.value.trim();
+            const numMatch = raw.match(/^\d{1,3}$/);
+            if (!numMatch) return;
+            _songAutoFillTimer = setTimeout(async () => {
+                const name = await getSongNameByNumber(numMatch[0], _songAutoFillShiji[type]);
+                if (name && el.value.trim() === numMatch[0]) {
+                    el.value = numMatch[0] + ' ' + name;
+                }
+            }, 600);
+        });
+    });
 }
 
 async function fetchLyrics(type) {
@@ -1756,6 +1850,12 @@ async function fetchLyrics(type) {
             const d = detailJson.data[0];
             lyric = d.lyric || '';
             audioUrl = d.adUrl || '';
+            // 保存 LRC 时间戳歌词与歌谱URL（供幻灯片歌词跟随与歌谱展示）
+            songMeta[type] = {
+                lrc: d.lrc || '',
+                gepuUrl: d.gepuUrl || '',
+                title: song.title || ''
+            };
         }
 
         if (!lyric) {
@@ -2341,12 +2441,73 @@ function renderSlide() {
     page.innerHTML = html;
     document.getElementById('slide-counter').textContent = `${currentSlide + 1} / ${slides.length}`;
 
+    // LRC 歌词跟随：进入歌词页时激活对应歌曲的 LRC 数据
+    const lrcLine = document.getElementById('lrc-line');
+    if (lrcLine) {
+        const isLyricSlide = (s.type === 'lyrics');
+        if (isLyricSlide && s.audioKey && songMeta[s.audioKey] && songMeta[s.audioKey].lrc) {
+            lrcData[s.audioKey] = parseLrc(songMeta[s.audioKey].lrc);
+            lrcActiveKey = s.audioKey;
+            lrcLine.classList.add('show');
+            lrcLine.textContent = '';
+        } else {
+            lrcActiveKey = null;
+            lrcLine.classList.remove('show');
+        }
+    }
+
+    // 歌谱按钮状态
+    const gepuBtn = document.getElementById('btn-gepu');
+    if (gepuBtn) {
+        const hasGepu = s.audioKey && songMeta[s.audioKey] && songMeta[s.audioKey].gepuUrl;
+        gepuBtn.style.display = hasGepu ? 'inline-block' : 'none';
+        if (!hasGepu) document.getElementById('gepu-view').style.display = 'none';
+    }
+
     // Audio control: show/hide audio bar based on current slide
     updateAudioForSlide();
 
     // Update TOC highlight
     updateTocHighlight();
 }
+
+// ============ LRC / 歌谱 / 投屏 ============
+let lrcHideGepu = false;
+function toggleGepuView(show) {
+    const view = document.getElementById('gepu-view');
+    const s = slides[currentSlide];
+    const meta = s && s.audioKey ? songMeta[s.audioKey] : null;
+    if (show) {
+        if (!meta || !meta.gepuUrl) return;
+        document.getElementById('gepu-img').src = ensureHttps(meta.gepuUrl);
+        view.style.display = 'flex';
+        lrcHideGepu = true;
+        // 歌谱打开时隐藏 LRC 行
+        const lrcLine = document.getElementById('lrc-line');
+        if (lrcLine) lrcLine.classList.remove('show');
+    } else {
+        view.style.display = 'none';
+        lrcHideGepu = false;
+        const s2 = slides[currentSlide];
+        if (s2 && s2.audioKey && songMeta[s2.audioKey] && songMeta[s2.audioKey].lrc) {
+            document.getElementById('lrc-line').classList.add('show');
+        }
+    }
+}
+// 投屏 idle 自动隐藏控制栏
+let _idleTimer = null;
+function resetIdleTimer() {
+    const ov = document.getElementById('slideshow-overlay');
+    if (!ov || !ov.classList.contains('show')) return;
+    ov.classList.remove('auto-hide');
+    clearTimeout(_idleTimer);
+    _idleTimer = setTimeout(() => {
+        if (document.fullscreenElement) ov.classList.add('auto-hide');
+    }, 4000);
+}
+document.addEventListener('mousemove', resetIdleTimer);
+document.addEventListener('keydown', resetIdleTimer);
+document.addEventListener('click', resetIdleTimer);
 
 // ============ TOC (Table of Contents) Navigation ============
 let tocVisible = true;
@@ -2800,6 +2961,20 @@ async function updateAudioForSlide() {
                     document.getElementById('audio-time').textContent = formatTime(cur) + ' / ' + formatTime(dur);
                     const prog = document.getElementById('audio-progress');
                     if (prog && dur > 0 && !prog._seeking) prog.value = (cur / dur) * 100;
+                    // LRC 歌词跟随：按时间戳更新当前歌词行
+                    if (lrcData[s.audioKey] && lrcData[s.audioKey].length > 0 && !lrcHideGepu) {
+                        let lineText = '';
+                        const arr = lrcData[s.audioKey];
+                        for (let i = arr.length - 1; i >= 0; i--) {
+                            if (cur >= arr[i].t) { lineText = arr[i].text; break; }
+                        }
+                        const lrcEl = document.getElementById('lrc-line');
+                        if (lrcEl && lrcEl.textContent !== lineText) {
+                            lrcEl.textContent = lineText;
+                            lrcEl.classList.add('lrc-fade');
+                            setTimeout(() => lrcEl.classList.remove('lrc-fade'), 300);
+                        }
+                    }
                 });
                 audio.addEventListener('ended', () => {
                     document.getElementById('audio-btn-play').textContent = '▶ 播放';
@@ -3155,6 +3330,9 @@ function showAlertDialog(title, message) {
 window.addEventListener('DOMContentLoaded', () => {
     checkRestoreBar();
     renderHistory();
+    // 歌曲编号自动补全 + 后台预热歌曲索引
+    setupSongAutoFill();
+    setTimeout(() => { getSongList().catch(() => {}); }, 1000);
     // 初始化自动解析开关状态
     try {
         const ap = localStorage.getItem('wpg_auto_parse');
